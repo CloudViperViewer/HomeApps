@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+
+
+## Dev enviroment ##
+
+
+  go_api_dev:
+    container_name: go_api_dev
+    build: .
+    depends_on:
+      - db_dev      
+    ports:
+      - "8081:8080"    
+    environment:
+      - DB_USER=system
+      - DB_PASS=BlackNightSailBoat
+      - DB_HOST=db_dev
+      - DB_NAME=finance  
+    networks:
+      - home-net
+
+  db_dev:
+    container_name: db_dev
+    image: mariadb
+    restart: always
+    environment: 
+      MARIADB_ROOT_PASSWORD: password    
+    ports:
+      - "3307:3306"
+    networks:
+      - home-net
+
+
+
+
+## Test Enviroment ##
+  go_api_test:
+    container_name: go_api_test
+    build: .
+    depends_on:
+      - db_test
+    ports:
+      - "8082:8080"    
+    environment:
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_HOST=db
+      - DB_NAME=home_db
+      - DB_PORT=3308
+    networks:
+      - home-net
+
+  db_test:
+    container_name: db_test
+    image: mariadb
+    restart: always
+    environment: 
+      MARIADB_ROOT_PASSWORD: password
+    ports:
+      - "3308:3306"
+    networks:
+      - home-net
+
+## Prod Enviroment ##
+
+  go_api_prod:
+    container_name: go_api_prod
+    build: .
+    depends_on:
+      - db_prod
+    ports:
+      - "8080:8080"    
+    environment:
+      - DB_USER=root
+      - DB_PASS=password1
+      - DB_HOST=db
+      - DB_NAME=home_db
+      - DB_PORT=3306
+    networks:
+      - home-net
+
+  db_prod:
+    container_name: db_prod
+    image: mariadb
+    restart: always
+    environment: 
+      MARIADB_ROOT_PASSWORD: password     
+    ports:
+      - "3306:3306"
+    networks:
+      - home-net
+
+networks:
+  home-net:
