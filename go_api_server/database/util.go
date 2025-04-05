@@ -2,12 +2,15 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// This is a temporary function for testing eventually will be made more generic
 func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 
 	var row *sql.Rows
@@ -16,29 +19,31 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	var bankData tables.Bank
 	columnNames = utils.GetAllTags(bankData, "db")
 
-	row, err = db.Query("Select ? FROM ?.? WHERE `bank_id` = ?;", utils.JoinArray(columnNames, ", "), database, table, 1)
+	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s = ?", utils.JoinArray(columnNames, ", "), database, table, "bank_id")
 
-	// if err != nil {
-	// 	log.Fatal("Query failed ", err)
-	// } else {
-	// 	log.Println("Query successful")
-	// }
+	row, err = db.Query(query, 1)
 
-	// defer row.Close()
+	if err != nil {
+		log.Fatal("Query failed ", err)
+	} else {
+		log.Println("Query successful")
+	}
 
-	// for row.Next() {
-	// 	var bankData tables.Bank
+	defer row.Close()
 
-	// 	if err = row.Scan(&bankData.BankID, &bankData.BankName); err != nil {
-	// 		log.Fatal("Failed to scan row:", err)
-	// 	}
+	for row.Next() {
+		var bankData tables.Bank
 
-	// 	log.Println(bankData.BankID, " ", bankData.BankName)
+		if err = row.Scan(&bankData.BankID, &bankData.BankName, &bankData.DisplayOrder, &bankData.CreatedBy, &bankData.CreatedOn, &bankData.UpdatedBy, &bankData.UpdatedOn, &bankData.IsActive); err != nil {
+			log.Fatal("Failed to scan row:", err)
+		}
 
-	// }
+		log.Println(bankData.BankID, " ", bankData.BankName)
 
-	// // Check for errors during iteration
-	// if err := row.Err(); err != nil {
-	// 	log.Fatal("Error iterating rows:", err)
-	// }
+	}
+
+	// Check for errors during iteration
+	if err := row.Err(); err != nil {
+		log.Fatal("Error iterating rows:", err)
+	}
 }
