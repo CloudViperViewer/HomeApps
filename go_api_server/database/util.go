@@ -19,9 +19,9 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	var bankData tables.Bank
 	columnNames = utils.GetAllTags(bankData, "db")
 
-	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s = ?", utils.JoinArray(columnNames, ", "), database, table, "bank_id")
+	query := fmt.Sprintf("Select %s FROM %s.%s WHERE ?", utils.JoinArray(columnNames, ", "), database, table)
 
-	row, err = db.Query(query, 1)
+	row, err = db.Query(query, QueryFilter("=", "bank_id", 1))
 
 	if err != nil {
 		log.Fatal("Query failed ", err)
@@ -46,4 +46,22 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	if err := row.Err(); err != nil {
 		log.Fatal("Error iterating rows:", err)
 	}
+}
+
+// Function to build filter for db query
+//   - string Operator used in the query "includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
+//   - field to compare against
+//   - value in for filter (not required for "is null" and "is not null")
+func QueryFilter(operator string, field string, value any) string {
+
+	var condition string
+
+	switch operator {
+	case "=":
+		condition = fmt.Sprintf("%s = %v", field, value)
+	}
+
+	log.Println(condition)
+
+	return condition
 }
