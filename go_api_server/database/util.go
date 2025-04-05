@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
@@ -17,15 +16,15 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	var bankData tables.Bank
 	columnNames = utils.GetAllTags(bankData, "db")
 
-	row, err = db.Query("Select ? FROM ?.? WHERE `bank_id` = ?;", utils.JoinArray(columnNames, ", "), database, table, "1")
+	row, err = db.Query("Select ? FROM ?.? WHERE `bank_id` = ?;", utils.JoinArray(columnNames, ", "), database, table, 1)
 
-	if err != nil {
-		log.Fatal("Query failed ", err)
-	} else {
-		log.Println("Query successful")
-	}
+	// if err != nil {
+	// 	log.Fatal("Query failed ", err)
+	// } else {
+	// 	log.Println("Query successful")
+	// }
 
-	defer row.Close()
+	// defer row.Close()
 
 	// for row.Next() {
 	// 	var bankData tables.Bank
