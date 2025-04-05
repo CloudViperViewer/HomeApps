@@ -18,10 +18,20 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	var columnNames []string
 	var bankData tables.Bank
 	columnNames = utils.GetAllTags(bankData, "db")
+	var queryFilters map[string]any = QueryFilter("=", "bank_id", 1)
 
-	query := fmt.Sprintf("Select %s FROM %s.%s WHERE ?", utils.JoinArray(columnNames, ", "), database, table)
+	var filters []string
+	var values []any
 
-	row, err = db.Query(query, QueryFilter("=", "bank_id", 1))
+	for key := range queryFilters {
+		filters = append(filters, key)
+		values = append(values, queryFilters[key])
+	}
+
+	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s", utils.JoinArray(columnNames, ", "), database, table, filters[0])
+	log.Println(query)
+	log.Println(values)
+	row, err = db.Query(query, values...)
 
 	if err != nil {
 		log.Fatal("Query failed ", err)
@@ -52,16 +62,17 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 //   - string Operator used in the query "includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
 //   - field to compare against
 //   - value in for filter (not required for "is null" and "is not null")
-func QueryFilter(operator string, field string, value any) string {
+func QueryFilter(operator string, field string, value any) map[string]any {
 
 	var condition string
 
+	/*Create query string*/
 	switch operator {
 	case "=":
-		condition = fmt.Sprintf("%s = %v", field, value)
+		condition = fmt.Sprintf("%s = ?", field)
 	}
 
-	log.Println(condition)
+	var queryFilter map[string]any = map[string]any{condition: value}
 
-	return condition
+	return queryFilter
 }
