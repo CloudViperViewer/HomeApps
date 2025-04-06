@@ -17,7 +17,7 @@ import (
 type Filter struct {
 	Operator string
 	Field    string
-	value    any
+	Value    any
 }
 
 // Structure to be used with a logical expression for more complex quieries
@@ -41,7 +41,22 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 	var filters string
 	var values []any
 
-	filters, values = LogicalExpression(LogicExpression{"AND", []Filter{{"=", "bank_id", 1}, {"=", "is_active", 1}}, nil})
+	var myExpress = LogicExpression{
+		Operator: "AND",
+		Filters:  nil,
+		LogicExpressions: []LogicExpression{
+			{
+				Operator: "AND",
+				Filters: []Filter{
+					{Operator: "=", Field: "bank_id", Value: 1},
+					{Operator: "=", Field: "is_active", Value: 1},
+				},
+				LogicExpressions: nil,
+			},
+		},
+	}
+
+	filters, values = LogicalExpression(myExpress)
 
 	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s", utils.JoinArray(columnNames, ", "), database, table, filters)
 	row, err = db.Query(query, values...)
@@ -79,9 +94,28 @@ func QueryFilter(filter Filter) string {
 	var condition string
 
 	/*Create query string*/
+	//includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
 	switch filter.Operator {
 	case "=":
 		condition = fmt.Sprintf("%s = ?", filter.Field)
+	case "includes":
+		condition = fmt.Sprintf("%s like %%?%%", filter.Field)
+	case "<=":
+		condition = fmt.Sprintf("%s <= ?", filter.Field)
+	case "<":
+		condition = fmt.Sprintf("%s < ?", filter.Field)
+	case ">=":
+		condition = fmt.Sprintf("%s >= ?", filter.Field)
+	case ">":
+		condition = fmt.Sprintf("%s >= ?", filter.Field)
+	case "is null":
+		condition = fmt.Sprintf("%s IS NULL", filter.Field)
+	case "is not null":
+		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
+	case "in":
+		condition = fmt.Sprintf("%s in (?)", filter.Field)
+	case "not in":
+		condition = fmt.Sprintf("%s in (?)", filter.Field)
 	}
 
 	return condition
@@ -89,22 +123,39 @@ func QueryFilter(filter Filter) string {
 
 // Function will create a logical expression combining conditions with AND OR
 //   - Logic expression for functions to evaluate
-func LogicalExpression(LogicalExpression LogicExpression) (string, []any) {
+func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 
 	var expression string
 	var expressionList []string
 	var values []any
 
+	//Loop Over Nested Logical Expressions
+	for i := range logicalExpression.LogicExpressions {
+		subExpression, subValues := LogicalExpression(logicalExpression.LogicExpressions[i])
+
+		/*Make sure sub Expression is not empty then add to expressionlist*/
+		if subExpression != "" {
+			expressionList = append(expressionList, "("+subExpression+")")
+		}
+
+		//if sub values no null append to values list to flatten list
+		if subValues != nil {
+			values = append(values, subValues...)
+		}
+	}
+
 	//Loop over logical expressions and create the slice of conditions
-	for i := range LogicalExpression.Filters {
-		expressionList = append(expressionList, QueryFilter(LogicalExpression.Filters[i]))
-		values = append(values, LogicalExpression.Filters[i].value)
+	for i := range logicalExpression.Filters {
+		expressionList = append(expressionList, QueryFilter(logicalExpression.Filters[i]))
+		values = append(values, logicalExpression.Filters[i].Value)
 	}
 
 	//joing expression list into one single expression
-	switch LogicalExpression.Operator {
+	switch logicalExpression.Operator {
 	case "AND":
 		expression = utils.JoinArray(expressionList, " AND ")
+	case "OR":
+		expression = utils.JoinArray(expressionList, " OR ")
 	}
 
 	return expression, values

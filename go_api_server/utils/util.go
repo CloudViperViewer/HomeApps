@@ -22,9 +22,9 @@ import (
 
 // Gets All Tags for the passed struct
 //
-//	-Input defined as any but should always be a struct
-//	-String passed as tag name
-//	-Return slice of strings
+//   - Input defined as any but should always be a struct
+//   - String passed as tag name
+//   - Return slice of strings
 func GetAllTags(structure any, tagName string) []string {
 
 	/*Define return variable*/
@@ -50,9 +50,9 @@ func GetAllTags(structure any, tagName string) []string {
 
 // Takes a list of string and concatenates them with a delimiter
 //
-//	-array list of times to concatenate
-//	-delimiter string to use as seperator
-//	-Returns the string from connected arrat
+//   - array list of times to concatenate
+//   - delimiter string to use as seperator
+//   - Returns the string from connected arrat
 func JoinArray(array []string, delimiter string) string {
 
 	var connectedString string
