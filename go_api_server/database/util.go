@@ -17,7 +17,7 @@ import (
 type Filter struct {
 	Operator string
 	Field    string
-	Value    any
+	Value    []any
 }
 
 // Structure to be used with a logical expression for more complex quieries
@@ -43,20 +43,15 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 
 	var myExpress = LogicExpression{
 		Operator: "AND",
-		Filters:  nil,
-		LogicExpressions: []LogicExpression{
-			{
-				Operator: "AND",
-				Filters: []Filter{
-					{Operator: "=", Field: "bank_id", Value: 1},
-					{Operator: "=", Field: "is_active", Value: 1},
-				},
-				LogicExpressions: nil,
-			},
+		Filters: []Filter{
+			{Operator: "in", Field: "bank_id", Value: []any{1, 2}},
 		},
+		LogicExpressions: nil,
 	}
 
 	filters, values = LogicalExpression(myExpress)
+	log.Println(filters)
+	log.Println(values)
 
 	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s", utils.JoinArray(columnNames, ", "), database, table, filters)
 	row, err = db.Query(query, values...)
@@ -89,36 +84,51 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 // Function to build filter for db query
 //   - Filter takes a filter struct
 //   - returns a string with the expression and the corresponding value
-func QueryFilter(filter Filter) string {
+func QueryFilter(filter Filter) (string, any) {
 
 	var condition string
+	var value any
 
 	/*Create query string*/
 	//includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
 	switch filter.Operator {
 	case "=":
 		condition = fmt.Sprintf("%s = ?", filter.Field)
+		value = filter.Value[0]
 	case "includes":
-		condition = fmt.Sprintf("%s like %%?%%", filter.Field)
+		condition = fmt.Sprintf("%s LIKE ?", filter.Field)
+		value = fmt.Sprintf("%%%s%%", filter.Value[0])
 	case "<=":
 		condition = fmt.Sprintf("%s <= ?", filter.Field)
+		value = filter.Value[0]
 	case "<":
 		condition = fmt.Sprintf("%s < ?", filter.Field)
+		value = filter.Value[0]
 	case ">=":
 		condition = fmt.Sprintf("%s >= ?", filter.Field)
+		value = filter.Value[0]
 	case ">":
-		condition = fmt.Sprintf("%s >= ?", filter.Field)
+		condition = fmt.Sprintf("%s > ?", filter.Field)
+		value = filter.Value[0]
 	case "is null":
 		condition = fmt.Sprintf("%s IS NULL", filter.Field)
+		value = nil
 	case "is not null":
 		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
+		value = nil
 	case "in":
-		condition = fmt.Sprintf("%s in (?)", filter.Field)
+		condition = fmt.Sprintf("%s IN (?)", filter.Field)
+		value = utils.JoinArray(filter.Value, ", ")
 	case "not in":
-		condition = fmt.Sprintf("%s in (?)", filter.Field)
+		condition = fmt.Sprintf("%s NOT IN (?)", filter.Field)
+		value = utils.JoinArray(filter.Value, ", ")
+	default:
+		log.Printf("Warning: Unrecognised operator %s in filter", filter.Operator)
+		condition = ""
+		value = nil
 	}
 
-	return condition
+	return condition, value
 }
 
 // Function will create a logical expression combining conditions with AND OR
@@ -138,7 +148,7 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 			expressionList = append(expressionList, "("+subExpression+")")
 		}
 
-		//if sub values no null append to values list to flatten list
+		//if sub values not null append to values list to flatten list
 		if subValues != nil {
 			values = append(values, subValues...)
 		}
@@ -146,8 +156,14 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 
 	//Loop over logical expressions and create the slice of conditions
 	for i := range logicalExpression.Filters {
-		expressionList = append(expressionList, QueryFilter(logicalExpression.Filters[i]))
-		values = append(values, logicalExpression.Filters[i].Value)
+		subExpression, subValue := QueryFilter(logicalExpression.Filters[i])
+		expressionList = append(expressionList, subExpression)
+		values = append(values, subValue)
+	}
+
+	//Check if expression list is empty
+	if len(expressionList) == 0 {
+		return "", values
 	}
 
 	//joing expression list into one single expression
@@ -156,6 +172,10 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 		expression = utils.JoinArray(expressionList, " AND ")
 	case "OR":
 		expression = utils.JoinArray(expressionList, " OR ")
+	default:
+		//If invalid operator default ot AND and log error
+		log.Printf("Waring: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
+		expression = utils.JoinArray(expressionList, " AND ")
 	}
 
 	return expression, values

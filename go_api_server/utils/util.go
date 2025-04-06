@@ -17,6 +17,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -53,14 +54,14 @@ func GetAllTags(structure any, tagName string) []string {
 //   - array list of times to concatenate
 //   - delimiter string to use as seperator
 //   - Returns the string from connected arrat
-func JoinArray(array []string, delimiter string) string {
+func JoinArray[T string | any](array []T, delimiter string) string {
 
 	var connectedString string
 
 	//Loops over list and concats to string
 	for i := range array {
 
-		connectedString = connectedString + array[i]
+		connectedString = fmt.Sprintf("%s%v", connectedString, array[i])
 
 		//if not end of arracy concat delimiter
 		if i != len(array)-1 {
