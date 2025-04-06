@@ -84,32 +84,42 @@ func SelectQuery(db *sql.DB, database string, table string, columns []any) {
 // Function to build filter for db query
 //   - Filter takes a filter struct
 //   - returns a string with the expression and the corresponding value
-func QueryFilter(filter Filter) (string, any) {
+func QueryFilter(filter Filter) (string, []any) {
 
 	var condition string
-	var value any
+	var value []any
 
 	/*Create query string*/
 	//includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
 	switch filter.Operator {
 	case "=":
 		condition = fmt.Sprintf("%s = ?", filter.Field)
-		value = filter.Value[0]
+		value = filter.Value
 	case "includes":
 		condition = fmt.Sprintf("%s LIKE ?", filter.Field)
-		value = fmt.Sprintf("%%%s%%", filter.Value[0])
+		//Check if value empty
+		if len(filter.Value) == 0 {
+			log.Printf("Warning: Emty value sile for operator %s", filter.Operator)
+			return "", nil
+		}
+		//covert to string
+		strVal, ok := filter.Value[0].(string)
+		if !ok {
+			log.Printf("Warning: Non-string value for Like operator: %v", filter.Value[0])
+		}
+		value = append(value, "%"+strVal+"%")
 	case "<=":
 		condition = fmt.Sprintf("%s <= ?", filter.Field)
-		value = filter.Value[0]
+		value = filter.Value
 	case "<":
 		condition = fmt.Sprintf("%s < ?", filter.Field)
-		value = filter.Value[0]
+		value = filter.Value
 	case ">=":
 		condition = fmt.Sprintf("%s >= ?", filter.Field)
-		value = filter.Value[0]
+		value = filter.Value
 	case ">":
 		condition = fmt.Sprintf("%s > ?", filter.Field)
-		value = filter.Value[0]
+		value = filter.Value
 	case "is null":
 		condition = fmt.Sprintf("%s IS NULL", filter.Field)
 		value = nil
@@ -117,11 +127,19 @@ func QueryFilter(filter Filter) (string, any) {
 		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
 		value = nil
 	case "in":
-		condition = fmt.Sprintf("%s IN (?)", filter.Field)
-		value = utils.JoinArray(filter.Value, ", ")
+		placeHolders := make([]string, len(filter.Value))
+		for i := range filter.Value {
+			placeHolders[i] = "?"
+		}
+		condition = fmt.Sprintf("%s IN (%s)", filter.Field, utils.JoinArray(placeHolders, ", "))
+		value = filter.Value
 	case "not in":
-		condition = fmt.Sprintf("%s NOT IN (?)", filter.Field)
-		value = utils.JoinArray(filter.Value, ", ")
+		placeHolders := make([]string, len(filter.Value))
+		for i := range filter.Value {
+			placeHolders[i] = "?"
+		}
+		condition = fmt.Sprintf("%s NOT IN (%s)", filter.Field, utils.JoinArray(placeHolders, ", "))
+		value = filter.Value
 	default:
 		log.Printf("Warning: Unrecognised operator %s in filter", filter.Operator)
 		condition = ""
@@ -148,7 +166,7 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 			expressionList = append(expressionList, "("+subExpression+")")
 		}
 
-		//if sub values not null append to values list to flatten list
+		//if sub values slice is not null append to values list to flatten list
 		if subValues != nil {
 			values = append(values, subValues...)
 		}
@@ -158,7 +176,11 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 	for i := range logicalExpression.Filters {
 		subExpression, subValue := QueryFilter(logicalExpression.Filters[i])
 		expressionList = append(expressionList, subExpression)
-		values = append(values, subValue)
+
+		//if sub values slice is not null append to values list to flatten list
+		if subValue != nil {
+			values = append(values, subValue...)
+		}
 	}
 
 	//Check if expression list is empty
@@ -174,7 +196,7 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 		expression = utils.JoinArray(expressionList, " OR ")
 	default:
 		//If invalid operator default ot AND and log error
-		log.Printf("Waring: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
+		log.Printf("Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
 		expression = utils.JoinArray(expressionList, " AND ")
 	}
 
