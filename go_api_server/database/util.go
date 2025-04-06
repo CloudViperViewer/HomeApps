@@ -1,3 +1,26 @@
+/*	------------------------------------------------------------------------------------------------*/
+/*																									*/
+/*																									*/
+/*																									*/
+/*																									*/
+/*				Defines the utility functions databate sql executions								*/
+/*																									*/
+/*																									*/
+/*																									*/
+/*																									*/
+/*																									*/
+/*--------------------------------------------------------------------------------------------------*/
+
+/*----------Structs---------------*/
+//SelectQuery Used to construct a select db query
+//PagingInfo Determines how many rows to return and what index to start
+//Filter Structure to be used in query filter and logical expressions
+//LogicExpression Structure to be used with a logical expression for more complex quieries
+
+/*----------Functions---------------*/
+//QueryFilter Function to build filter for db query
+//LogicalExpression Function will create a logical expression combining conditions with AND OR
+
 package database
 
 import (
@@ -9,6 +32,26 @@ import (
 	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+// Used to construct a select db query
+// - Table to query
+// - Fields to return in query
+// - Logical expression to filter query
+// - page size of query cruicial for performance
+type SelectQuery struct {
+	Table           string
+	Fields          []string
+	LogicExpression LogicExpression
+	PagingInfo      PagingInfo
+}
+
+// Determines how many rows to return and what index to start
+//   - startIndex Offset for sql query
+//   - batchSize Limit for sql queru
+type PagingInfo struct {
+	startIndex int
+	batchSize  int
+}
 
 // Structure to be used in query filter and logical expressions
 //   - string Operator used in the query "includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
@@ -31,7 +74,7 @@ type LogicExpression struct {
 }
 
 // This is a temporary function for testing eventually will be made more generic
-func SelectQuery(db *sql.DB, database string, table string, columns []any) {
+func ASelectQuery(db *sql.DB, database string, table string, columns []any) {
 
 	var row *sql.Rows
 	var err error

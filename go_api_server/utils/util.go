@@ -13,6 +13,7 @@
 
 /*----------Functions---------------*/
 //GetAllTags gets the tags for a passed struct
+//JoinArray concatenates a slice of strings together with a delimiter
 
 package utils
 
