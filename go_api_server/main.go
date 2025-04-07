@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
@@ -21,8 +22,11 @@ func main() {
 	defer db.Close()
 
 	/*Table type testing*/
-	table := tables.TableFactory("bank")
+	table, err := tables.TableFactory(tables.BankTableKey)
 
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
 	var bankData tables.Bank
 
 	database.ASelectQuery(db, table.GetDatabase(), table.GetTableName(), []any{bankData.BankID, bankData.BankName})

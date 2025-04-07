@@ -16,6 +16,10 @@
 
 package tables
 
+import (
+	"fmt"
+)
+
 // Holds all functions to be globally used by all tables and table types
 type Table interface {
 	GetDatabase() string
@@ -23,12 +27,12 @@ type Table interface {
 }
 
 // takes a key and returns the table type
-func TableFactory(key string) Table {
+func TableFactory(key string) (Table, error) {
 	switch key {
-	case "bank":
-		return BankTable{}
+	case BankTableKey:
+		return BankTable{}, nil
 	default:
-		return nil
+		return nil, fmt.Errorf("unsupported table key: %s", key)
 	}
 
 }

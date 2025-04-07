@@ -29,6 +29,7 @@ import (
 const (
 	financeDatabase = "finance"
 	finRefBankTable = "fin_ref_bank"
+	BankTableKey    = "bank"
 )
 
 // Struct representing the database table
@@ -45,7 +46,7 @@ type Bank struct {
 
 // Defines a slice of Banks
 type BankTable struct {
-	rows []Bank
+	Rows []Bank
 }
 
 // Get bank database name
