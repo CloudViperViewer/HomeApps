@@ -1,12 +1,23 @@
+/*
+ *Holds structures and methods for the bank table
+ */
+
+/*
+* Package Components:
+
+
+* Structures
+* - Bank: Structure for the bank table
+
+
+* Functions:
+* - GetDatabase: Gets the table database
+* - GetTableName: Gets the name of the table
+ */
+
 package tables
 
 import "time"
-
-//Database and table constants
-const (
-	Database  = "finance"
-	TableName = "fin_ref_bank"
-)
 
 //Struct representing the database table
 type Bank struct {
@@ -18,4 +29,12 @@ type Bank struct {
 	UpdatedBy    string    `db:"updated_by"`
 	UpdatedOn    time.Time `db:"updated_on"`
 	IsActive     bool      `db:"is_active"`
+}
+
+func (b Bank) GetDatabase() string {
+	return "finance"
+}
+
+func (b Bank) GetTableName() string {
+	return "fin_ref_bank"
 }
