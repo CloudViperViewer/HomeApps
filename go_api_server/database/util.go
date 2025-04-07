@@ -1,25 +1,20 @@
-/*	------------------------------------------------------------------------------------------------*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*				Defines the utility functions databate sql executions								*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*--------------------------------------------------------------------------------------------------*/
+/*
+ * Defines the utility functions databate sql executions
+ */
 
-/*----------Structs---------------*/
-//SelectQuery Used to construct a select db query
-//PagingInfo Determines how many rows to return and what index to start
-//Filter Structure to be used in query filter and logical expressions
-//LogicExpression Structure to be used with a logical expression for more complex quieries
-
-/*----------Functions---------------*/
-//QueryFilter Function to build filter for db query
-//LogicalExpression Function will create a logical expression combining conditions with AND OR
+/*
+* Package Components:
+*
+* Structs:
+* - SelectQuery: Used to construct a select db query
+* - PagingInfo: Determines how many rows to return and what index to start
+* - Filter: Structure used in query filters and logical expressions
+* - LogicExpression: Structure for complex queries with combined conditions
+*
+* Functions:
+* - QueryFilter: Builds filters for db queries
+* - LogicalExpression: Creates expressions combining conditions with AND/OR operators
+ */
 
 package database
 
@@ -49,8 +44,8 @@ type SelectQuery struct {
 //   - startIndex Offset for sql query
 //   - batchSize Limit for sql queru
 type PagingInfo struct {
-	startIndex int
-	batchSize  int
+	StartIndex int
+	BatchSize  int
 }
 
 // Structure to be used in query filter and logical expressions
@@ -71,6 +66,12 @@ type LogicExpression struct {
 	Operator         string
 	Filters          []Filter
 	LogicExpressions []LogicExpression
+}
+
+// Generic select statment for db query
+// - SelectQuery - select query struct holding the query instructions
+func ExecuteSelectQuery(selectQuery SelectQuery) {
+
 }
 
 // This is a temporary function for testing eventually will be made more generic
@@ -142,13 +143,14 @@ func QueryFilter(filter Filter) (string, []any) {
 		condition = fmt.Sprintf("%s LIKE ?", filter.Field)
 		//Check if value empty
 		if len(filter.Value) == 0 {
-			log.Printf("Warning: Emty value sile for operator %s", filter.Operator)
+			log.Printf("Warning: Empty value slice for operator %s", filter.Operator)
 			return "", nil
 		}
 		//covert to string
 		strVal, ok := filter.Value[0].(string)
 		if !ok {
 			log.Printf("Warning: Non-string value for Like operator: %v", filter.Value[0])
+			return "", nil
 		}
 		value = append(value, "%"+strVal+"%")
 	case "<=":
@@ -165,10 +167,8 @@ func QueryFilter(filter Filter) (string, []any) {
 		value = filter.Value
 	case "is null":
 		condition = fmt.Sprintf("%s IS NULL", filter.Field)
-		value = nil
 	case "is not null":
 		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
-		value = nil
 	case "in":
 		placeHolders := make([]string, len(filter.Value))
 		for i := range filter.Value {

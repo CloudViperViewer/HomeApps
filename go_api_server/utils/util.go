@@ -1,19 +1,14 @@
-/*	------------------------------------------------------------------------------------------------*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*				Defines the utility functions for the entire application							*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*--------------------------------------------------------------------------------------------------*/
+/*
+ * Defines the utility functions for the entire application
+ */
 
-/*----------Functions---------------*/
-//GetAllTags gets the tags for a passed struct
-//JoinArray concatenates a slice of strings together with a delimiter
+/*
+* Package Components:
+
+* Functions:
+* - GetAllTags: gets the tags for a passed struct
+* - JoinArray concatenates a slice of strings together with a delimiter
+ */
 
 package utils
 
