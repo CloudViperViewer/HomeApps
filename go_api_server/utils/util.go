@@ -49,7 +49,7 @@ func GetAllTags(structure any, tagName string) []string {
 //
 //   - array list of times to concatenate
 //   - delimiter string to use as seperator
-//   - Returns the string from connected arrat
+//   - Returns the string from connected array
 func JoinArray[T string | any](array []T, delimiter string) string {
 
 	var connectedString string

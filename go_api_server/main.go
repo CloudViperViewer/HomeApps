@@ -20,9 +20,12 @@ func main() {
 	/*Defer won't execute till main returns*/
 	defer db.Close()
 
+	/*Table type testing*/
+	table := tables.TableFactory("bank")
+
 	var bankData tables.Bank
 
-	database.ASelectQuery(db, bankData.GetDatabase(), bankData.GetTableName(), []any{bankData.BankID, bankData.BankName})
+	database.ASelectQuery(db, table.GetDatabase(), table.GetTableName(), []any{bankData.BankID, bankData.BankName})
 
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {

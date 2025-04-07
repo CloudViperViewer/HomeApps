@@ -5,9 +5,13 @@
 /*
 * Package Components:
 
+* Constants
+* - financeDatabase: name of the database of the table
+* - finRefBankTable: name of the table for bank
 
 * Structures
 * - Bank: Structure for the bank table
+* - BankTable: defines a slice of Banks
 
 
 * Functions:
@@ -17,9 +21,17 @@
 
 package tables
 
-import "time"
+import (
+	"time"
+)
 
-//Struct representing the database table
+// Constants that hold the database and table names
+const (
+	financeDatabase = "finance"
+	finRefBankTable = "fin_ref_bank"
+)
+
+// Struct representing the database table
 type Bank struct {
 	BankID       int       `db:"bank_id"`
 	BankName     string    `db:"bank_name"`
@@ -31,10 +43,17 @@ type Bank struct {
 	IsActive     bool      `db:"is_active"`
 }
 
-func (b Bank) GetDatabase() string {
-	return "finance"
+// Defines a slice of Banks
+type BankTable struct {
+	rows []Bank
 }
 
-func (b Bank) GetTableName() string {
-	return "fin_ref_bank"
+// Get bank database name
+func (b BankTable) GetDatabase() string {
+	return financeDatabase
+}
+
+// Get bank table name
+func (b BankTable) GetTableName() string {
+	return finRefBankTable
 }
