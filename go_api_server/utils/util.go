@@ -13,18 +13,20 @@
 
 /*----------Functions---------------*/
 //GetAllTags gets the tags for a passed struct
+//JoinArray concatenates a slice of strings together with a delimiter
 
 package utils
 
 import (
+	"fmt"
 	"reflect"
 )
 
 // Gets All Tags for the passed struct
 //
-//	-Input defined as any but should always be a struct
-//	-String passed as tag name
-//	-Return slice of strings
+//   - Input defined as any but should always be a struct
+//   - String passed as tag name
+//   - Return slice of strings
 func GetAllTags(structure any, tagName string) []string {
 
 	/*Define return variable*/
@@ -50,17 +52,17 @@ func GetAllTags(structure any, tagName string) []string {
 
 // Takes a list of string and concatenates them with a delimiter
 //
-//	-array list of times to concatenate
-//	-delimiter string to use as seperator
-//	-Returns the string from connected arrat
-func JoinArray(array []string, delimiter string) string {
+//   - array list of times to concatenate
+//   - delimiter string to use as seperator
+//   - Returns the string from connected arrat
+func JoinArray[T string | any](array []T, delimiter string) string {
 
 	var connectedString string
 
 	//Loops over list and concats to string
 	for i := range array {
 
-		connectedString = connectedString + array[i]
+		connectedString = fmt.Sprintf("%s%v", connectedString, array[i])
 
 		//if not end of arracy concat delimiter
 		if i != len(array)-1 {
