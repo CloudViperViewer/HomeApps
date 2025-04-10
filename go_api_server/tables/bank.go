@@ -17,11 +17,14 @@
 * Functions:
 * - GetDatabase: Gets the table database
 * - GetTableName: Gets the name of the table
+* - GetAllData: Returns the rows for the table
+* - Append: adds data to the list
  */
 
 package tables
 
 import (
+	"log"
 	"time"
 )
 
@@ -46,15 +49,38 @@ type Bank struct {
 
 // Defines a slice of Banks
 type BankTable struct {
-	Rows []Bank
+	rows []Bank
 }
 
 // Get bank database name
-func (b BankTable) GetDatabase() string {
+func (b *BankTable) GetDatabase() string {
 	return financeDatabase
 }
 
 // Get bank table name
-func (b BankTable) GetTableName() string {
+func (b *BankTable) GetTableName() string {
 	return finRefBankTable
+}
+
+// Returns the rows for the table
+func (b *BankTable) GetBaseTableStruct() any {
+	return &Bank{}
+}
+
+// adds data to the list
+func (b *BankTable) Append(value any) {
+
+	switch v := value.(type) {
+	case Bank:
+		b.rows = append(b.rows, v)
+	case *Bank:
+		b.rows = append(b.rows, *v)
+	default:
+		log.Printf("Append failed: value is not of type Bank or *Bank")
+	}
+}
+
+// Returns all the rows of the table
+func (b *BankTable) GetRows() any {
+	return b.rows
 }

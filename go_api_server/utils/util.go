@@ -6,6 +6,8 @@
 * Package Components:
 
 * Functions:
+* - GetStructFieldPtrs: Gets Fields of the passed struct
+* - GetTagList: Gets Tags for Specific fields in struct
 * - GetAllTags: gets the tags for a passed struct
 * - JoinArray concatenates a slice of strings together with a delimiter
  */
@@ -16,6 +18,83 @@ import (
 	"fmt"
 	"reflect"
 )
+
+// Gets Fields of the passed struct
+// - Structure to get the fields from
+// - List of fields you whish to get
+func GetStructFieldPtrs(structure any, fields []string) ([]any, error) {
+
+	var prtArray []any
+
+	structFields := reflect.ValueOf(structure)
+
+	// Keep unwrapping interface{} layers
+	for structFields.Kind() == reflect.Interface {
+		structFields = structFields.Elem()
+	}
+
+	//Chec struct is the correct type
+	if structFields.Kind() != reflect.Ptr || structFields.Elem().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected pointer to struct, got %T", structure)
+	}
+
+	values := structFields.Elem()
+
+	//Loop of fields to get
+	for _, fieldName := range fields {
+
+		field := values.FieldByName(fieldName)
+
+		//Check if field is valid
+		if !field.IsValid() {
+			return nil, fmt.Errorf("no such filed %s in %T", fieldName, structure)
+
+		}
+
+		if !field.CanAddr() {
+			return nil, fmt.Errorf("field %s is not addressable (unexported?)", fieldName)
+		}
+
+		prtArray = append(prtArray, field.Addr().Interface())
+
+	}
+
+	return prtArray, nil
+
+}
+
+// Gets Tags for Specific fields in struct
+// - List struct to get fields from
+// - List of fields wanted
+// - Name of tag
+func GetTagList(structure any, fields []string, tagName string) ([]string, error) {
+
+	// Define variable to return
+	var tagValues []string
+
+	// Get struct type
+	var structType reflect.Type = reflect.TypeOf(structure)
+
+	// If it's a pointer, get the element type
+	if structType.Kind() == reflect.Ptr {
+		structType = structType.Elem()
+	}
+
+	//Loop over fields
+	for _, fieldName := range fields {
+
+		//Get field compare see if field is in passed list of fields then get tag
+		field, found := structType.FieldByName(fieldName)
+
+		if !found {
+			return nil, fmt.Errorf("error getting tag from field %s", fieldName)
+		}
+
+		tagValues = append(tagValues, field.Tag.Get(tagName))
+	}
+
+	return tagValues, nil
+}
 
 // Gets All Tags for the passed struct
 //

@@ -23,13 +23,28 @@ func main() {
 
 	/*Table type testing*/
 	table, err := tables.TableFactory(tables.BankTableKey)
-
 	if err != nil {
 		log.Fatal("Error: ", err)
 	}
-	var bankData tables.Bank
 
-	database.ASelectQuery(db, table.GetDatabase(), table.GetTableName(), []any{bankData.BankID, bankData.BankName})
+	var query database.SelectQuery = database.SelectQuery{
+		Table: &table,
+		LogicExpression: database.LogicExpression{
+			Operator: "AND",
+			Filters: []database.Filter{
+				{
+					Operator: "=",
+					Field:    "bank_id",
+					Value:    []any{1},
+				},
+			},
+		},
+		Fields: []string{"BankID"},
+	}
+
+	data, err := database.ExecuteSelectQuery(query)
+
+	println(data.GetRows())
 
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
