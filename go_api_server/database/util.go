@@ -1,25 +1,20 @@
-/*	------------------------------------------------------------------------------------------------*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*				Defines the utility functions databate sql executions								*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*																									*/
-/*--------------------------------------------------------------------------------------------------*/
+/*
+ * Defines the utility functions databate sql executions
+ */
 
-/*----------Structs---------------*/
-//SelectQuery Used to construct a select db query
-//PagingInfo Determines how many rows to return and what index to start
-//Filter Structure to be used in query filter and logical expressions
-//LogicExpression Structure to be used with a logical expression for more complex quieries
-
-/*----------Functions---------------*/
-//QueryFilter Function to build filter for db query
-//LogicalExpression Function will create a logical expression combining conditions with AND OR
+/*
+* Package Components:
+*
+* Structs:
+* - SelectQuery: Used to construct a select db query
+* - PagingInfo: Determines how many rows to return and what index to start
+* - Filter: Structure used in query filters and logical expressions
+* - LogicExpression: Structure for complex queries with combined conditions
+*
+* Functions:
+* - QueryFilter: Builds filters for db queries
+* - LogicalExpression: Creates expressions combining conditions with AND/OR operators
+ */
 
 package database
 
@@ -39,7 +34,7 @@ import (
 // - Logical expression to filter query
 // - page size of query cruicial for performance
 type SelectQuery struct {
-	Table           string
+	Table           *tables.Table
 	Fields          []string
 	LogicExpression LogicExpression
 	PagingInfo      PagingInfo
@@ -49,8 +44,8 @@ type SelectQuery struct {
 //   - startIndex Offset for sql query
 //   - batchSize Limit for sql queru
 type PagingInfo struct {
-	startIndex int
-	batchSize  int
+	StartIndex int
+	BatchSize  int
 }
 
 // Structure to be used in query filter and logical expressions
@@ -73,55 +68,70 @@ type LogicExpression struct {
 	LogicExpressions []LogicExpression
 }
 
-// This is a temporary function for testing eventually will be made more generic
-func ASelectQuery(db *sql.DB, database string, table string, columns []any) {
+// Generic select statment for db query
+// - SelectQuery - select query struct holding the query instructions
+func ExecuteSelectQuery(selectQuery SelectQuery) (tables.Table, error) {
 
-	var row *sql.Rows
 	var err error
-	var columnNames []string
-	var bankData tables.Bank
-	columnNames = utils.GetAllTags(bankData, "db")
-	var filters string
+	var fields []string
+	var logicalExpression string
 	var values []any
+	var rows *sql.Rows
+	var data tables.Table = *selectQuery.Table
 
-	var myExpress = LogicExpression{
-		Operator: "AND",
-		Filters: []Filter{
-			{Operator: "in", Field: "bank_id", Value: []any{1, 2}},
-		},
-		LogicExpressions: nil,
+	//Get db Fields
+	fields, err = utils.GetTagList(data.GetBaseTableStruct(),
+		selectQuery.Fields,
+		"db")
+
+	//Check fields returned
+	if err != nil {
+		return nil, err
 	}
 
-	filters, values = LogicalExpression(myExpress)
-	log.Println(filters)
-	log.Println(values)
+	//get logical Expression
+	logicalExpression, values = LogicalExpression(selectQuery.LogicExpression)
 
-	query := fmt.Sprintf("Select %s FROM %s.%s WHERE %s", utils.JoinArray(columnNames, ", "), database, table, filters)
-	row, err = db.Query(query, values...)
+	//Construct Query
+	var query = fmt.Sprintf("Select %s FROM `%s`.`%s` WHERE %s",
+		utils.JoinArray(fields, ", "),
+		data.GetDatabase(),
+		data.GetTableName(),
+		logicalExpression)
+
+	//Execute query
+	rows, err = db.Query(query, values...)
 
 	if err != nil {
-		log.Fatal("Query failed ", err)
-	} else {
-		log.Println("Query successful")
+		return nil, err
 	}
 
-	defer row.Close()
+	//Close the query after the function is completed
+	defer rows.Close()
 
-	for row.Next() {
-		var bankData tables.Bank
+	for rows.Next() {
+		var baseTable any = data.GetBaseTableStruct()
+		var fieldPtrs []any
 
-		if err = row.Scan(&bankData.BankID, &bankData.BankName, &bankData.DisplayOrder, &bankData.CreatedBy, &bankData.CreatedOn, &bankData.UpdatedBy, &bankData.UpdatedOn, &bankData.IsActive); err != nil {
-			log.Fatal("Failed to scan row:", err)
+		//Get Field pointers
+		fieldPtrs, err = utils.GetStructFieldPtrs(baseTable, selectQuery.Fields)
+
+		//check field ptrs didn't error
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		//Scan row
+		if err = rows.Scan(fieldPtrs...); err != nil {
+			return nil, fmt.Errorf("failed to scan row %s", err)
 		}
 
-		log.Println(bankData.BankID, " ", bankData.BankName)
-
+		//Add to rows
+		data.Append(baseTable)
 	}
 
-	// Check for errors during iteration
-	if err := row.Err(); err != nil {
-		log.Fatal("Error iterating rows:", err)
-	}
+	return data, nil
+
 }
 
 // Function to build filter for db query
@@ -142,13 +152,14 @@ func QueryFilter(filter Filter) (string, []any) {
 		condition = fmt.Sprintf("%s LIKE ?", filter.Field)
 		//Check if value empty
 		if len(filter.Value) == 0 {
-			log.Printf("Warning: Emty value sile for operator %s", filter.Operator)
+			log.Printf("Warning: Empty value slice for operator %s", filter.Operator)
 			return "", nil
 		}
 		//covert to string
 		strVal, ok := filter.Value[0].(string)
 		if !ok {
 			log.Printf("Warning: Non-string value for Like operator: %v", filter.Value[0])
+			return "", nil
 		}
 		value = append(value, "%"+strVal+"%")
 	case "<=":
@@ -165,10 +176,8 @@ func QueryFilter(filter Filter) (string, []any) {
 		value = filter.Value
 	case "is null":
 		condition = fmt.Sprintf("%s IS NULL", filter.Field)
-		value = nil
 	case "is not null":
 		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
-		value = nil
 	case "in":
 		placeHolders := make([]string, len(filter.Value))
 		for i := range filter.Value {

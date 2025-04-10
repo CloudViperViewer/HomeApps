@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
@@ -20,9 +21,30 @@ func main() {
 	/*Defer won't execute till main returns*/
 	defer db.Close()
 
-	var bankData tables.Bank
+	/*Table type testing*/
+	table, err := tables.TableFactory(tables.BankTableKey)
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
 
-	database.ASelectQuery(db, tables.Database, tables.TableName, []any{bankData.BankID, bankData.BankName})
+	var query database.SelectQuery = database.SelectQuery{
+		Table: &table,
+		LogicExpression: database.LogicExpression{
+			Operator: "AND",
+			Filters: []database.Filter{
+				{
+					Operator: "=",
+					Field:    "bank_id",
+					Value:    []any{1},
+				},
+			},
+		},
+		Fields: []string{"BankID"},
+	}
+
+	data, err := database.ExecuteSelectQuery(query)
+
+	println(data.GetRows())
 
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
