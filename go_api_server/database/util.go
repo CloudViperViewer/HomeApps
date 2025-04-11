@@ -12,8 +12,10 @@
 * - LogicExpression: Structure for complex queries with combined conditions
 *
 * Functions:
-* - QueryFilter: Builds filters for db queries
-* - LogicalExpression: Creates expressions combining conditions with AND/OR operators
+* - ExecuteSelectQuery: Runs a select query on the db
+* - queryFilter: Builds filters for db queries
+* - logicalExpression: Creates expressions combining conditions with AND/OR operators
+* - generateSelectQueryString: Generates the query string
  */
 
 package database
@@ -34,7 +36,7 @@ import (
 // - Logical expression to filter query
 // - page size of query cruicial for performance
 type SelectQuery struct {
-	Table           *tables.Table
+	Table           tables.Table
 	Fields          []string
 	LogicExpression LogicExpression
 	PagingInfo      PagingInfo
@@ -44,8 +46,10 @@ type SelectQuery struct {
 //   - startIndex Offset for sql query
 //   - batchSize Limit for sql queru
 type PagingInfo struct {
+	//starts at 1
 	StartIndex int
-	BatchSize  int
+	//size of batch -1 to return all
+	BatchSize int
 }
 
 // Structure to be used in query filter and logical expressions
@@ -68,40 +72,79 @@ type LogicExpression struct {
 	LogicExpressions []LogicExpression
 }
 
+// Function will create a logical expression combining conditions with AND OR
+//   - Logic expression for functions to evaluate
+func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
+
+	var expression string
+	var expressionList []string
+	var values []any
+
+	//Loop Over Nested Logical Expressions
+	for i := range logicalExpression.LogicExpressions {
+		subExpression, subValues := LogicalExpression(logicalExpression.LogicExpressions[i])
+
+		/*Make sure sub Expression is not empty then add to expressionlist*/
+		if subExpression != "" {
+			expressionList = append(expressionList, "("+subExpression+")")
+		}
+
+		//if sub values slice is not null append to values list to flatten list
+		if subValues != nil {
+			values = append(values, subValues...)
+		}
+	}
+
+	//Loop over logical expressions and create the slice of conditions
+	for i := range logicalExpression.Filters {
+		subExpression, subValue := queryFilter(logicalExpression.Filters[i])
+		expressionList = append(expressionList, subExpression)
+
+		//if sub values slice is not null append to values list to flatten list
+		if subValue != nil {
+			values = append(values, subValue...)
+		}
+	}
+
+	//Check if expression list is empty
+	if len(expressionList) == 0 {
+		return "", values
+	}
+
+	//joing expression list into one single expression
+	switch logicalExpression.Operator {
+	case "AND":
+		expression = utils.JoinArray(expressionList, " AND ")
+	case "OR":
+		expression = utils.JoinArray(expressionList, " OR ")
+	default:
+		//If invalid operator default ot AND and log error
+		log.Printf("Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
+		expression = utils.JoinArray(expressionList, " AND ")
+	}
+
+	return expression, values
+
+}
+
 // Generic select statment for db query
 // - SelectQuery - select query struct holding the query instructions
-func ExecuteSelectQuery(selectQuery SelectQuery) (tables.Table, error) {
+func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, error) {
 
 	var err error
-	var fields []string
-	var logicalExpression string
 	var values []any
+	var query string
 	var rows *sql.Rows
-	var data tables.Table = *selectQuery.Table
+	var data tables.Table = selectQuery.Table
 
-	//Get db Fields
-	fields, err = utils.GetTagList(data.GetBaseTableStruct(),
-		selectQuery.Fields,
-		"db")
+	query, values, err = generateSelectQueryString(selectQuery, data)
 
-	//Check fields returned
 	if err != nil {
 		return nil, err
 	}
 
-	//get logical Expression
-	logicalExpression, values = LogicalExpression(selectQuery.LogicExpression)
-
-	//Construct Query
-	var query = fmt.Sprintf("Select %s FROM `%s`.`%s` WHERE %s",
-		utils.JoinArray(fields, ", "),
-		data.GetDatabase(),
-		data.GetTableName(),
-		logicalExpression)
-
 	//Execute query
 	rows, err = db.Query(query, values...)
-
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +167,7 @@ func ExecuteSelectQuery(selectQuery SelectQuery) (tables.Table, error) {
 		//Scan row
 		if err = rows.Scan(fieldPtrs...); err != nil {
 			return nil, fmt.Errorf("failed to scan row %s", err)
+
 		}
 
 		//Add to rows
@@ -137,7 +181,7 @@ func ExecuteSelectQuery(selectQuery SelectQuery) (tables.Table, error) {
 // Function to build filter for db query
 //   - Filter takes a filter struct
 //   - returns a string with the expression and the corresponding value
-func QueryFilter(filter Filter) (string, []any) {
+func queryFilter(filter Filter) (string, []any) {
 
 	var condition string
 	var value []any
@@ -201,57 +245,47 @@ func QueryFilter(filter Filter) (string, []any) {
 	return condition, value
 }
 
-// Function will create a logical expression combining conditions with AND OR
-//   - Logic expression for functions to evaluate
-func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
+// Function used to generate the query string
+// - SelectQuery struct
+func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (string, []any, error) {
 
-	var expression string
-	var expressionList []string
+	var query string
+	var paging string
+	var fields []string
+	var logicalExpression string
 	var values []any
+	var err error
 
-	//Loop Over Nested Logical Expressions
-	for i := range logicalExpression.LogicExpressions {
-		subExpression, subValues := LogicalExpression(logicalExpression.LogicExpressions[i])
-
-		/*Make sure sub Expression is not empty then add to expressionlist*/
-		if subExpression != "" {
-			expressionList = append(expressionList, "("+subExpression+")")
-		}
-
-		//if sub values slice is not null append to values list to flatten list
-		if subValues != nil {
-			values = append(values, subValues...)
-		}
+	if selectQuery.PagingInfo == (PagingInfo{}) {
+		return "", nil, fmt.Errorf("paging info cannot be empty")
 	}
 
-	//Loop over logical expressions and create the slice of conditions
-	for i := range logicalExpression.Filters {
-		subExpression, subValue := QueryFilter(logicalExpression.Filters[i])
-		expressionList = append(expressionList, subExpression)
-
-		//if sub values slice is not null append to values list to flatten list
-		if subValue != nil {
-			values = append(values, subValue...)
-		}
+	if selectQuery.PagingInfo.BatchSize == -1 {
+		paging = fmt.Sprintf("OFFSET %v", selectQuery.PagingInfo.StartIndex-1)
+	} else {
+		paging = fmt.Sprintf("LIMIT %v OFFSET %v", selectQuery.PagingInfo.BatchSize, selectQuery.PagingInfo.StartIndex-1)
 	}
 
-	//Check if expression list is empty
-	if len(expressionList) == 0 {
-		return "", values
+	//Get db Fields
+	fields, err = utils.GetTagList(data.GetBaseTableStruct(),
+		selectQuery.Fields,
+		"db")
+
+	//Check fields returned
+	if err != nil {
+		return "", nil, err
 	}
 
-	//joing expression list into one single expression
-	switch logicalExpression.Operator {
-	case "AND":
-		expression = utils.JoinArray(expressionList, " AND ")
-	case "OR":
-		expression = utils.JoinArray(expressionList, " OR ")
-	default:
-		//If invalid operator default ot AND and log error
-		log.Printf("Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
-		expression = utils.JoinArray(expressionList, " AND ")
-	}
+	//get logical Expression
+	logicalExpression, values = LogicalExpression(selectQuery.LogicExpression)
 
-	return expression, values
+	//Construct Query
+	query = fmt.Sprintf("Select %s FROM `%s`.`%s` WHERE %s %s",
+		utils.JoinArray(fields, ", "),
+		data.GetDatabase(),
+		data.GetTableName(),
+		logicalExpression,
+		paging)
 
+	return query, values, nil
 }

@@ -28,7 +28,7 @@ func main() {
 	}
 
 	var query database.SelectQuery = database.SelectQuery{
-		Table: &table,
+		Table: table,
 		LogicExpression: database.LogicExpression{
 			Operator: "AND",
 			Filters: []database.Filter{
@@ -39,12 +39,13 @@ func main() {
 				},
 			},
 		},
-		Fields: []string{"BankID"},
+		Fields:     []string{"BankID", "BankName"},
+		PagingInfo: database.PagingInfo{StartIndex: 1, BatchSize: 10},
 	}
 
-	data, err := database.ExecuteSelectQuery(query)
+	data, err := database.ExecuteSelectQuery(db, query)
 
-	println(data.GetRows())
+	log.Println(data.GetRows())
 
 	router := gin.Default()
 	router.GET("/ping", func(c *gin.Context) {
