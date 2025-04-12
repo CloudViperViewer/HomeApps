@@ -32,19 +32,19 @@ import (
 const (
 	financeDatabase = "finance"
 	finRefBankTable = "fin_ref_bank"
-	BankTableKey    = "bank"
+	BankTableKey    = "Bank"
 )
 
 // Struct representing the database table
 type Bank struct {
-	BankID       int       `db:"bank_id"`
-	BankName     string    `db:"bank_name"`
-	DisplayOrder int       `db:"display_order"`
-	CreatedBy    string    `db:"created_by"`
-	CreatedOn    time.Time `db:"created_on"`
-	UpdatedBy    string    `db:"updated_by"`
-	UpdatedOn    time.Time `db:"updated_on"`
-	IsActive     bool      `db:"is_active"`
+	BankID       int       `db:"bank_id" json:"bankId,omitempty"`
+	BankName     string    `db:"bank_name" json:"bankName,omitempty"`
+	DisplayOrder int       `db:"display_order" json:"displayOrder,omitempty"`
+	CreatedBy    string    `db:"created_by" json:"createdBym,omitempty"`
+	CreatedOn    time.Time `db:"created_on" json:"createdOn,omitempty"`
+	UpdatedBy    string    `db:"updated_by" json:"updatedBy,omitempty"`
+	UpdatedOn    time.Time `db:"updated_on" json:"updatedOn,omitempty"`
+	IsActive     bool      `db:"is_active" json:"isActive,omitempty"`
 }
 
 // Defines a slice of Banks

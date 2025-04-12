@@ -69,7 +69,7 @@ type Filter struct {
 type LogicExpression struct {
 	Operator         string            `json:"operator"`
 	Filters          []Filter          `json:"filters"`
-	LogicExpressions []LogicExpression `json:"logicalExpression"`
+	LogicExpressions []LogicExpression `json:"logicalExpressions"`
 }
 
 // Function will create a logical expression combining conditions with AND OR
