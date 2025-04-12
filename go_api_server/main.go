@@ -3,11 +3,10 @@ package main
 import (
 	"database/sql"
 	"log"
-	"net/http"
 
+	"github.com/CloudViperViewer/HomeApps/go_api_server/api"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
-	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -47,10 +46,10 @@ func main() {
 
 	log.Println(data.GetRows())
 
-	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
-	})
+	// router.GET("/ping", func(c *gin.Context) {
+	// 	c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	// })
 
-	router.Run(":8080")
+	api.StartUpServer()
+
 }
