@@ -40,7 +40,7 @@ type Bank struct {
 	BankID       int       `db:"bank_id" json:"bankId,omitempty"`
 	BankName     string    `db:"bank_name" json:"bankName,omitempty"`
 	DisplayOrder int       `db:"display_order" json:"displayOrder,omitempty"`
-	CreatedBy    string    `db:"created_by" json:"createdBym,omitempty"`
+	CreatedBy    string    `db:"created_by" json:"createdBy,omitempty"`
 	CreatedOn    time.Time `db:"created_on" json:"createdOn,omitempty"`
 	UpdatedBy    string    `db:"updated_by" json:"updatedBy,omitempty"`
 	UpdatedOn    time.Time `db:"updated_on" json:"updatedOn,omitempty"`

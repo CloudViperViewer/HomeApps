@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
@@ -28,7 +29,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Rpresents the json struct to be passed in api call
+// Represents the json struct to be passed in api call
 type selectQuery struct {
 	Table             string                   `json:"table"`
 	Fields            []string                 `json:"fields"`
@@ -103,14 +104,27 @@ func dbQuerySelect(c *gin.Context) {
 	//Query db
 	data, err = queryDb(selectQ)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "bad request",
+
+		//Determine status code
+		statusCode := http.StatusInternalServerError
+		errorType := "server_error"
+
+		// Check for specific error types to provide more accurate status codes
+		if strings.Contains(err.Error(), "not_found") {
+			statusCode = http.StatusNotFound
+			errorType = "not_found"
+		} else if strings.Contains(err.Error(), "invalid") {
+			statusCode = http.StatusBadRequest
+			errorType = "bad_request"
+		}
+		c.JSON(statusCode, gin.H{
+			"error":   errorType,
 			"message": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "ACCEPTED", "data": data.GetRows()})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": data.GetRows()})
 }
 
 // Confirms the passed meets requirments
@@ -124,12 +138,12 @@ func confirmData(selectQ selectQuery) error {
 	}
 
 	//startIndex missing
-	if selectQ.PagingInfo.StartIndex == 0 {
+	if selectQ.PagingInfo.StartIndex <= 0 {
 		missingData = append(missingData, "start index cannot be 0 or empty")
 	}
 
 	//batchSize missing
-	if selectQ.PagingInfo.BatchSize == 0 {
+	if selectQ.PagingInfo.BatchSize == 0 || (selectQ.PagingInfo.BatchSize < 0 && selectQ.PagingInfo.BatchSize != -1) {
 		missingData = append(missingData, "batch size must be greater than 0 or -1")
 	}
 
@@ -142,7 +156,13 @@ func confirmData(selectQ selectQuery) error {
 
 }
 
-// Calls functions to query the db
+/* Calls functions to query the db
+* Returns the queried data as a tables.Table and an error if:
+* - The specified table doesn't exist
+* - There's a database connection error
+* - The query execution fails
+* - The data mapping fails
+ */
 func queryDb(selectQ selectQuery) (tables.Table, error) {
 
 	var SQuery database.SelectQuery = database.SelectQuery{
