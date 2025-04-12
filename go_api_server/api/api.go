@@ -21,7 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Starts up the api server
+// StartUpServer initializes the API server by creating a default Gin router, configuring API endpoints via setupEndPoints, and starting the server to listen on all interfaces at port 8080.
 func StartUpServer() {
 
 	/*Setup router*/
@@ -34,7 +34,7 @@ func StartUpServer() {
 	router.Run("0.0.0.0:8080")
 }
 
-// Setups up endpoints
+// setupEndPoints registers the POST "/api/select" endpoint on the provided Gin router to handle database selection requests using dbQuerySelect.
 func setupEndPoints(router *gin.Engine) {
 
 	router.POST("/api/select", dbQuerySelect)

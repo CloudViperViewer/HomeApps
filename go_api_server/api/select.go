@@ -36,7 +36,7 @@ type selectQuery struct {
 	PagingInfo        database.PagingInfo      `json:"pagingInfo"`
 }
 
-// Handles db select endpoint
+// dbQuerySelect processes HTTP requests to execute a database select query. It reads the request body (up to 1MB), ensures the content type is "application/json", and binds the JSON payload to a selectQuery structure. The function then validates the required fields, executes the query using queryDb, and returns a JSON response with the query results or an error message.
 func dbQuerySelect(c *gin.Context) {
 
 	var body []byte
@@ -113,7 +113,10 @@ func dbQuerySelect(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ACCEPTED", "data": data.GetRows()})
 }
 
-// Confirms the passed meets requirments
+// confirmData validates that the provided selectQuery has the required fields.
+// It checks that the table name is non-empty, the PagingInfo.StartIndex is not zero,
+// and the PagingInfo.BatchSize is not zero. If any of these validations fail, it returns
+// an error listing the missing or invalid fields; otherwise, it returns nil.
 func confirmData(selectQ selectQuery) error {
 
 	var missingData []string
@@ -142,7 +145,11 @@ func confirmData(selectQ selectQuery) error {
 
 }
 
-// Calls functions to query the db
+// queryDb constructs and executes a select query against the database.
+// It builds a database.SelectQuery using the paging info, fields, and logical expression
+// from the provided selectQuery, retrieves the target table via the table factory, and
+// executes the query against the configured database. It returns the resulting data as a
+// tables.Table or an error if the table retrieval or query execution fails.
 func queryDb(selectQ selectQuery) (tables.Table, error) {
 
 	var SQuery database.SelectQuery = database.SelectQuery{

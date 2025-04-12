@@ -10,7 +10,7 @@ import (
 
 /*Function that sets up connection to the database*/
 
-/*Main function for the api server*/
+// main is the entry point of the API server. It initializes the database connection, defers its closure to ensure proper cleanup, and starts the API server.
 func main() {
 
 	database.DatabaseInit()
