@@ -47,9 +47,9 @@ type SelectQuery struct {
 //   - batchSize Limit for sql queru
 type PagingInfo struct {
 	//starts at 1
-	StartIndex int
+	StartIndex int `json:"startIndex"`
 	//size of batch -1 to return all
-	BatchSize int
+	BatchSize int `json:"batchSize"`
 }
 
 // Structure to be used in query filter and logical expressions
@@ -57,9 +57,9 @@ type PagingInfo struct {
 //   - field to compare against
 //   - value for the filter to compare against
 type Filter struct {
-	Operator string
-	Field    string
-	Value    []any
+	Operator string `json:"operator"`
+	Field    string `json:"field"`
+	Value    []any  `json:"value"`
 }
 
 // Structure to be used with a logical expression for more complex quieries
@@ -67,9 +67,9 @@ type Filter struct {
 //   - Filters
 //   - Logic Expressions to further construct
 type LogicExpression struct {
-	Operator         string
-	Filters          []Filter
-	LogicExpressions []LogicExpression
+	Operator         string            `json:"operator"`
+	Filters          []Filter          `json:"filters"`
+	LogicExpressions []LogicExpression `json:"logicalExpression"`
 }
 
 // Function will create a logical expression combining conditions with AND OR

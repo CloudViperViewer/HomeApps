@@ -6,10 +6,13 @@
 * Package Components:
 *
 *
+* This package implements API endpoints for database operations
+* using the Gin framework for HTTP request handling.
+*
+*
 * Functions:
-* StartUpServer: Starts up the api server
-* setupEndPoints: Setup endpoints
-* dbQuerySelect: Handles db select endpoint
+* - StartUpServer: Starts up the api server
+* - setupEndPoints: Setup endpoints
  */
 
 package api
