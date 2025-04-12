@@ -73,7 +73,7 @@ func dbQuerySelect(c *gin.Context) {
 	}
 
 	//Ensure content is json
-	if c.GetHeader("Content-Type") != "application/json" {
+	if !strings.HasPrefix(c.GetHeader("Content-Type"), "application/json") {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": "Content-Type must be application/json",
@@ -138,7 +138,7 @@ func confirmData(selectQ selectQuery) error {
 	}
 
 	//startIndex missing
-	if selectQ.PagingInfo.StartIndex <= 0 {
+	if selectQ.PagingInfo.StartIndex < 1 {
 		missingData = append(missingData, "start index cannot be 0 or empty")
 	}
 
@@ -148,7 +148,7 @@ func confirmData(selectQ selectQuery) error {
 	}
 
 	//data correct
-	if missingData == nil {
+	if len(missingData) == 0 {
 		return nil
 	}
 
