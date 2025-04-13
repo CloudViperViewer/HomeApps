@@ -30,7 +30,6 @@ import (
 
 // Constants that hold the database and table names
 const (
-	financeDatabase = "finance"
 	finRefBankTable = "fin_ref_bank"
 	BankTableKey    = "Bank"
 )

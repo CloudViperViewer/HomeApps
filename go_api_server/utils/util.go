@@ -6,6 +6,7 @@
 * Package Components:
 
 * Functions:
+* - GetStructAllFieldPtrs: Gets a slice of points for all fields in the struct
 * - GetStructFieldPtrs: Gets Fields of the passed struct
 * - GetTagList: Gets Tags for Specific fields in struct
 * - GetAllTags: gets the tags for a passed struct
@@ -18,6 +19,42 @@ import (
 	"fmt"
 	"reflect"
 )
+
+// Gets a slice of points for all fields in the struct
+func GetStructAllFieldPtrs(structure any) ([]any, error) {
+
+	var ptrArray []any
+
+	structFields := reflect.ValueOf(structure)
+
+	// Keep unwrapping interface{} layers
+	for structFields.Kind() == reflect.Interface {
+		structFields = structFields.Elem()
+	}
+
+	//Chec struct is the correct type
+	if structFields.Kind() != reflect.Ptr || structFields.Elem().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected pointer to struct, got %T", structure)
+	}
+
+	if structFields.Kind() == reflect.Ptr {
+		structFields = structFields.Elem()
+	}
+
+	//loop over fields
+	for i := 0; i < structFields.NumField(); i++ {
+
+		field := structFields.Field(i)
+
+		if field.CanAddr() {
+			ptrArray = append(ptrArray, field.Addr().Interface())
+		}
+
+	}
+
+	return ptrArray, nil
+
+}
 
 // Gets Fields of the passed struct
 // - Structure to get the fields from
