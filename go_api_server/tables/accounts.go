@@ -60,7 +60,7 @@ func (a *AccountTable) GetDatabase() string {
 	return financeDatabase
 }
 
-// Get bank table name
+// Get account table name
 func (a *AccountTable) GetTableName() string {
 	return finAccountTable
 }
@@ -79,7 +79,7 @@ func (a *AccountTable) Append(value any) {
 	case *Account:
 		a.rows = append(a.rows, *v)
 	default:
-		log.Printf("Append failed: value is not of type Bank or *Bank")
+		log.Printf("Append failed: value is not of type Account or *Account")
 	}
 }
 

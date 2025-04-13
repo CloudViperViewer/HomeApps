@@ -74,15 +74,20 @@ type LogicExpression struct {
 
 // Function will create a logical expression combining conditions with AND OR
 //   - Logic expression for functions to evaluate
-func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
+func LogicalExpression(logicalExpression LogicExpression, structure any) (string, []any, error) {
 
 	var expression string
 	var expressionList []string
 	var values []any
+	var err error
 
 	//Loop Over Nested Logical Expressions
 	for i := range logicalExpression.LogicExpressions {
-		subExpression, subValues := LogicalExpression(logicalExpression.LogicExpressions[i])
+		subExpression, subValues, err := LogicalExpression(logicalExpression.LogicExpressions[i], structure)
+
+		if err != nil {
+			return "", nil, err
+		}
 
 		/*Make sure sub Expression is not empty then add to expressionlist*/
 		if subExpression != "" {
@@ -97,8 +102,12 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 
 	//Loop over logical expressions and create the slice of conditions
 	for i := range logicalExpression.Filters {
-		subExpression, subValue := queryFilter(logicalExpression.Filters[i])
+		subExpression, subValue, err := queryFilter(logicalExpression.Filters[i], structure)
 		expressionList = append(expressionList, subExpression)
+
+		if err != nil {
+			return "", nil, err
+		}
 
 		//if sub values slice is not null append to values list to flatten list
 		if subValue != nil {
@@ -108,7 +117,7 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 
 	//Check if expression list is empty
 	if len(expressionList) == 0 {
-		return "", values
+		return "", values, nil
 	}
 
 	//joing expression list into one single expression
@@ -123,7 +132,7 @@ func LogicalExpression(logicalExpression LogicExpression) (string, []any) {
 		expression = utils.JoinArray(expressionList, " AND ")
 	}
 
-	return expression, values
+	return expression, values, err
 
 }
 
@@ -185,68 +194,75 @@ func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, erro
 // Function to build filter for db query
 //   - Filter takes a filter struct
 //   - returns a string with the expression and the corresponding value
-func queryFilter(filter Filter) (string, []any) {
+func queryFilter(filter Filter, structure any) (string, []any, error) {
 
 	var condition string
 	var value []any
+	var field []string
+	var err error
+
+	//Get db field
+	field, err = utils.GetTagList(structure, []string{filter.Field}, "db")
+
+	if err != nil {
+		return "", nil, err
+	}
 
 	/*Create query string*/
 	//includes" "=" "<=" "<" ">=" ">" "is null" "is not null" "in" "not in"
 	switch filter.Operator {
 	case "=":
-		condition = fmt.Sprintf("%s = ?", filter.Field)
+		condition = fmt.Sprintf("%s = ?", field[0])
 		value = filter.Value
 	case "includes":
-		condition = fmt.Sprintf("%s LIKE ?", filter.Field)
+		condition = fmt.Sprintf("%s LIKE ?", field[0])
 		//Check if value empty
 		if len(filter.Value) == 0 {
-			log.Printf("Warning: Empty value slice for operator %s", filter.Operator)
-			return "", nil
+			return "", nil, fmt.Errorf("empty value slice for operator %s", filter.Operator)
 		}
 		//covert to string
 		strVal, ok := filter.Value[0].(string)
 		if !ok {
-			log.Printf("Warning: Non-string value for Like operator: %v", filter.Value[0])
-			return "", nil
+			return "", nil, fmt.Errorf("non-string value for Like operator: %v", filter.Value[0])
 		}
 		value = append(value, "%"+strVal+"%")
 	case "<=":
-		condition = fmt.Sprintf("%s <= ?", filter.Field)
+		condition = fmt.Sprintf("%s <= ?", field[0])
 		value = filter.Value
 	case "<":
-		condition = fmt.Sprintf("%s < ?", filter.Field)
+		condition = fmt.Sprintf("%s < ?", field[0])
 		value = filter.Value
 	case ">=":
-		condition = fmt.Sprintf("%s >= ?", filter.Field)
+		condition = fmt.Sprintf("%s >= ?", field[0])
 		value = filter.Value
 	case ">":
-		condition = fmt.Sprintf("%s > ?", filter.Field)
+		condition = fmt.Sprintf("%s > ?", field[0])
 		value = filter.Value
 	case "is null":
-		condition = fmt.Sprintf("%s IS NULL", filter.Field)
+		condition = fmt.Sprintf("%s IS NULL", field[0])
 	case "is not null":
-		condition = fmt.Sprintf("%s IS NOT NULL", filter.Field)
+		condition = fmt.Sprintf("%s IS NOT NULL", field[0])
 	case "in":
 		placeHolders := make([]string, len(filter.Value))
 		for i := range filter.Value {
 			placeHolders[i] = "?"
 		}
-		condition = fmt.Sprintf("%s IN (%s)", filter.Field, utils.JoinArray(placeHolders, ", "))
+		condition = fmt.Sprintf("%s IN (%s)", field[0], utils.JoinArray(placeHolders, ", "))
 		value = filter.Value
 	case "not in":
 		placeHolders := make([]string, len(filter.Value))
 		for i := range filter.Value {
 			placeHolders[i] = "?"
 		}
-		condition = fmt.Sprintf("%s NOT IN (%s)", filter.Field, utils.JoinArray(placeHolders, ", "))
+		condition = fmt.Sprintf("%s NOT IN (%s)", field[0], utils.JoinArray(placeHolders, ", "))
 		value = filter.Value
 	default:
-		log.Printf("Warning: Unrecognised operator %s in filter", filter.Operator)
+		err = fmt.Errorf("unrecognised operator %s in filter", filter.Operator)
 		condition = ""
 		value = nil
 	}
 
-	return condition, value
+	return condition, value, err
 }
 
 // Function used to generate the query string
@@ -285,7 +301,11 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 	}
 
 	//get logical Expression
-	logicalExpression, values = LogicalExpression(selectQuery.LogicExpression)
+	logicalExpression, values, err = LogicalExpression(selectQuery.LogicExpression, data.GetBaseTableStruct())
+
+	if err != nil {
+		return "", nil, err
+	}
 
 	//Construct Query
 	query = fmt.Sprintf("Select %s FROM `%s`.`%s` WHERE %s %s",

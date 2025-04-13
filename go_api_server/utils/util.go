@@ -32,7 +32,7 @@ func GetStructAllFieldPtrs(structure any) ([]any, error) {
 		structFields = structFields.Elem()
 	}
 
-	//Chec struct is the correct type
+	//Check struct is the correct type
 	if structFields.Kind() != reflect.Ptr || structFields.Elem().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("expected pointer to struct, got %T", structure)
 	}
