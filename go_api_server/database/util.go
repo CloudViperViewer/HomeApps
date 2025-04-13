@@ -281,7 +281,7 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 	}
 
 	if selectQuery.PagingInfo.BatchSize == -1 {
-		paging = fmt.Sprintf("OFFSET %v", selectQuery.PagingInfo.StartIndex-1)
+		paging = fmt.Sprintf("LIMIT 100000000 OFFSET %v", selectQuery.PagingInfo.StartIndex-1)
 	} else {
 		paging = fmt.Sprintf("LIMIT %v OFFSET %v", selectQuery.PagingInfo.BatchSize, selectQuery.PagingInfo.StartIndex-1)
 	}
