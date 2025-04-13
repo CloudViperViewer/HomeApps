@@ -157,7 +157,11 @@ func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, erro
 		var fieldPtrs []any
 
 		//Get Field pointers
-		fieldPtrs, err = utils.GetStructFieldPtrs(baseTable, selectQuery.Fields)
+		if len(selectQuery.Fields) == 0 {
+			fieldPtrs, err = utils.GetStructAllFieldPtrs(baseTable)
+		} else {
+			fieldPtrs, err = utils.GetStructFieldPtrs(baseTable, selectQuery.Fields)
+		}
 
 		//check field ptrs didn't error
 		if err != nil {
@@ -267,9 +271,13 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 	}
 
 	//Get db Fields
-	fields, err = utils.GetTagList(data.GetBaseTableStruct(),
-		selectQuery.Fields,
-		"db")
+	if len(selectQuery.Fields) == 0 {
+		fields = append(fields, "*")
+	} else {
+		fields, err = utils.GetTagList(data.GetBaseTableStruct(),
+			selectQuery.Fields,
+			"db")
+	}
 
 	//Check fields returned
 	if err != nil {
