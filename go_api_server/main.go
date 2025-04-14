@@ -56,7 +56,7 @@ func checkLoggingServer() error {
 	var maxRetries int = 10
 
 	//execute health check
-	for i := range maxRetries {
+	for i := 0; i < maxRetries; i++ {
 
 		response, err = http.Get(url)
 
