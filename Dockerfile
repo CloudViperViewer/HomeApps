@@ -18,6 +18,7 @@ COPY . .
 
 # Build the Go binary
 RUN go build -o home-app ./go_api_server
+RUN go build -o home-app ./go_logging_server
 
 # Run the app
 CMD ["/app/home-app"]
