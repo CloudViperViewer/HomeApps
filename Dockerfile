@@ -17,7 +17,10 @@ COPY . .
 
 
 # Build the Go binary
-RUN go build -o home-app ./go_api_server
+RUN go build -o api-server ./go_api_server
+RUN go build -o log-server ./go_logging_server
 
 # Run the app
-CMD ["/app/home-app"]
+COPY start.sh /app/
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]
