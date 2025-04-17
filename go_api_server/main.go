@@ -20,6 +20,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/api"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
@@ -49,25 +50,34 @@ func main() {
 // Check if logging server reachable
 func checkLoggingServer() error {
 
+	//Get host
+	var serverHost string = os.Getenv("LOG_SERVER_HOST")
+	if serverHost == "" {
+		serverHost = "localhost"
+	}
+
 	var serverPort string = os.Getenv("LOG_SERVER_PORT")
-	var url string = fmt.Sprintf("http://192.168.0.171:%s/health", serverPort)
+	var url string = fmt.Sprintf("http://%s:%s/health", serverHost, serverPort)
 	var err error
 	var response *http.Response
 	var maxRetries int = 10
+	var client = &http.Client{
+		Timeout: 5 * time.Second,
+	}
 
 	//execute health check
 	for i := 0; i < maxRetries; i++ {
 
-		response, err = http.Get(url)
+		response, err = client.Get(url)
 
 		log.Printf("Connecting to log server....: Attempt: %v", i+1)
 
 		//Check for running
-		if response.StatusCode == http.StatusOK || err == nil {
+		if err == nil && response != nil && response.StatusCode == http.StatusOK {
 			log.Printf("Connected to log server")
-			return fmt.Errorf("log server not health")
+			return nil
 		}
 	}
 
-	return err
+	return fmt.Errorf("log server not healthy")
 }

@@ -18,6 +18,9 @@
 package api
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,7 +34,11 @@ func StartUpServer() {
 	setupEndPoints(router)
 
 	/*Run router*/
-	router.Run("0.0.0.0:8090")
+	if err := router.Run("0.0.0.0:8090"); err != nil {
+		//change to write to log
+		fmt.Printf("Failed to start server: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // Setups up endpoints
