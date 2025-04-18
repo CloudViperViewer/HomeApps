@@ -26,7 +26,7 @@ import (
 	"log"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
-	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
+	"github.com/CloudViperViewer/HomeApps/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 

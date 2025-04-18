@@ -23,9 +23,10 @@ import (
 	"net/http"
 	"strings"
 
+	apiutilities "github.com/CloudViperViewer/HomeApps/api_utilities"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
-	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
+	"github.com/CloudViperViewer/HomeApps/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,23 +54,12 @@ func dbQuerySelect(c *gin.Context) {
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	//Check if body is empty
-	if err != nil || len(body) <= 0 {
-		if err == io.EOF || len(body) <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "bad request",
-				"message": "body cannot be empty",
-			})
-			return
-
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "bad request",
-				"message": "failed to read request body: " + err.Error(),
-			})
-			return
-
-		}
-
+	if err = apiutilities.IsBodyEmpty(body, err); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "bad request",
+			"message": err.Error(),
+		})
+		return
 	}
 
 	//Ensure content is json
