@@ -33,6 +33,10 @@ func GetLogServerUrl() string {
 	//get port
 	var serverPort string = os.Getenv("LOG_SERVER_PORT")
 
+	if serverHost == "" {
+		serverPort = "8090"
+	}
+
 	return fmt.Sprintf("http://%s:%s/", serverHost, serverPort)
 
 }

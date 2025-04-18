@@ -29,19 +29,19 @@ func DatabaseInit() {
 		}
 
 		if err == nil {
-			utils.LogInfo(utils.ServiceDatabase, "Connected to database")
+			utils.LogInfo(utils.ServiceDatabaseApi, "", "Connected to database")
 			return
 		}
 
 		/*5 second delay between attempts*/
-		utils.LogInfo(utils.ServiceDatabase, "Waiting for database to be ready... Retrying in 5 seconds")
+		utils.LogInfo(utils.ServiceDatabaseApi, "", "Waiting for database to be ready... Retrying in 5 seconds")
 		// log.Println("Waiting for database to be ready... Retrying in 5 seconds")
 		time.Sleep(5 * time.Second)
 	}
 
 	/*If all ten fail terminate*/
 	if err != nil {
-		utils.LogFatal(utils.ServiceDatabase, "Failed to connect")
+		utils.LogFatal(utils.ServiceDatabaseApi, "", "Failed to connect")
 
 	}
 }
