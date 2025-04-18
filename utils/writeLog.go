@@ -19,10 +19,11 @@ package utils
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -44,12 +45,19 @@ const (
 )
 
 // rand number max
-const randMax = 10000
+const randMax = 1000000
 
 // Generates a random number for the request
 func getRequestId() int {
 
-	return rand.Intn(randMax)
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(randMax)))
+
+	if err != nil {
+		// Fall back to a timestamp-based ID in case of error
+		return int(time.Now().UnixNano() % int64(randMax))
+	}
+
+	return int(n.Int64())
 }
 
 /*Handles standard log message actions
@@ -65,7 +73,7 @@ func logMessageHandler(level int, service string, metadata string, msg string, a
 	var response *http.Response
 	var data map[string]any
 
-	var client = &http.Client{
+	var httpClient = &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
@@ -82,6 +90,7 @@ func logMessageHandler(level int, service string, metadata string, msg string, a
 		"message":    fmt.Sprintf(msg, args...),
 		"service":    service,
 		"request_id": getRequestId(),
+		"timestamp":  time.Now().UTC().Format(time.RFC1123),
 		"metadata":   metadata}
 
 	//conver to json
@@ -92,29 +101,23 @@ func logMessageHandler(level int, service string, metadata string, msg string, a
 	}
 
 	//send response
-	response, err = client.Post(parsedUrl.String(), "application/json", bytes.NewReader(json))
+	response, err = httpClient.Post(parsedUrl.String(), "application/json", bytes.NewReader(json))
 
-	//evaluate logging server response
-	if response == nil || response.StatusCode != http.StatusOK || err != nil {
-		if err != nil {
-			log.Println("failed to write to log api failed: " + err.Error())
-			//close body
-			if response != nil && response.Body != nil {
-				response.Body.Close()
-			}
-			return
-		}
-
-		log.Println("failed to write to log api failed")
-		//close body
+	// Ensure response body is always closed if it exists
+	defer func() {
 		if response != nil && response.Body != nil {
 			response.Body.Close()
 		}
+	}()
+
+	//evaluate logging server response
+	if err != nil {
+		log.Println("failed to write to log api failed: " + err.Error())
+		return
 	}
 
-	//close body
-	if response != nil && response.Body != nil {
-		response.Body.Close()
+	if response == nil || response.StatusCode != http.StatusOK {
+		log.Println("failed to write to log api failed")
 	}
 }
 
@@ -153,7 +156,7 @@ func LogWarn(service string, metadata string, msg string, args ...any) {
 
 }
 
-/* Creates a Warn Log
+/* Creates a Error Log
 * - service: service log relates to
 * - msg: message for the log
 * - args: arguments for the message
@@ -164,7 +167,7 @@ func LogError(service string, metadata string, msg string, args ...any) {
 	logMessageHandler(levelError, service, metadata, msg, args...)
 }
 
-/* Creates a Warn Log
+/* Creates a Fatal Log
 * - service: service log relates to
 * - msg: message for the log
 * - args: arguments for the message

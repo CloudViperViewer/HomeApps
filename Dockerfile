@@ -22,6 +22,5 @@ RUN go build -o log-server ./go_logging_server
 
 # Run the app
 COPY start.sh /app/
-RUN ls -l /app && head -n 5 /app/start.sh | cat -v
 RUN chmod +x /app/start.sh
 CMD ["/app/start.sh"]

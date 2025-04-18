@@ -26,7 +26,8 @@ type Log struct {
 	Message   string `json:"message"`    //required
 	Service   string `json:"service"`    //required
 	RequestID int    `json:"request_id"` // required
-	Metadata  string `json:"metadata"`   //optional
+	TimeStamp string `json:"timestamp"`
+	Metadata  string `json:"metadata"` //optional
 }
 
 // Log levels constants

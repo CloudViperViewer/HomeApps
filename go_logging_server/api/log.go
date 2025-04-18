@@ -24,8 +24,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Main function exposed by logging end point
-// - context for the api call
+// handleLogRequest processes incoming log messages from clients
+// - c: the gin context for the API call
+//
+// Validates the request body, parses the log data, and writes it using the logging package
 func handleLogRequest(c *gin.Context) {
 
 	var body []byte
@@ -48,8 +50,9 @@ func handleLogRequest(c *gin.Context) {
 		return
 	}
 
-	//Ensure content is json
-	if !strings.HasPrefix(c.GetHeader("Content-Type"), "application/json") {
+	//Ensure content is json (more precise check that handles parameters)
+	contentType := c.GetHeader("Content-Type")
+	if contentType == "" || !strings.Contains(strings.Split(contentType, ";")[0], "application/json") {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
 			"message": "Content-Type must be application/json",
@@ -62,7 +65,7 @@ func handleLogRequest(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
-			"message": "error in parsing json: " + err.Error(),
+			"message": fmt.Sprintf("error in parsing json: %s", err.Error()),
 		})
 		return
 	}
@@ -89,8 +92,9 @@ func handleLogRequest(c *gin.Context) {
 
 }
 
-// Confirms the passed json has all required data
-// - log passed by json
+// confirmData validates that the Log object contains all required fields
+// - log: The Log object to validate
+// Returns an error with details of any missing fields, or nil if validation passes
 func confirmData(log logging.Log) error {
 
 	var missingData []string
