@@ -26,7 +26,6 @@ import (
 	apiutilities "github.com/CloudViperViewer/HomeApps/api_utilities"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
-	"github.com/CloudViperViewer/HomeApps/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -142,7 +141,7 @@ func confirmData(selectQ selectQuery) error {
 		return nil
 	}
 
-	return fmt.Errorf("missing or incorrect data: %s", utils.JoinArray(missingData, ", "))
+	return fmt.Errorf("missing or incorrect data: %s", strings.Join(missingData, ", "))
 
 }
 

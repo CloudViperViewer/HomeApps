@@ -21,13 +21,12 @@ import (
 
 	apiutilities "github.com/CloudViperViewer/HomeApps/api_utilities"
 	"github.com/CloudViperViewer/HomeApps/go_logging_server/logging"
-	utils "github.com/CloudViperViewer/HomeApps/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // Main function exposed by logging end point
 // - context for the api call
-func log(c *gin.Context) {
+func handleLogRequest(c *gin.Context) {
 
 	var body []byte
 	var err error
@@ -77,7 +76,12 @@ func log(c *gin.Context) {
 		return
 	}
 
-	logging.WriteLog(log)
+	if err = logging.WriteLog(log); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Internal server error",
+			"message": err.Error()})
+		return
+	}
 
 	//return response
 	c.JSON(http.StatusOK, gin.H{
@@ -113,7 +117,7 @@ func confirmData(log logging.Log) error {
 
 	//data is missing
 	if len(missingData) > 0 {
-		return fmt.Errorf("json missing required fields %s", utils.JoinArray(missingData, ", "))
+		return fmt.Errorf("json missing required fields %s", strings.Join(missingData, ", "))
 	}
 
 	return nil

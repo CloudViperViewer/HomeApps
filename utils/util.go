@@ -6,19 +6,36 @@
 * Package Components:
 
 * Functions:
+* - GetLogServerUrl: returns the url of the log server
 * - GetStructAllFieldPtrs: Gets a slice of points for all fields in the struct
 * - GetStructFieldPtrs: Gets Fields of the passed struct
 * - GetTagList: Gets Tags for Specific fields in struct
 * - GetAllTags: gets the tags for a passed struct
-* - JoinArray concatenates a slice of strings together with a delimiter
+* - JoinArray_Deprecated: concatenates a slice of strings together with a delimiter
  */
 
 package utils
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 )
+
+// Gets the url for the logging server
+func GetLogServerUrl() string {
+	//Get host
+	var serverHost string = os.Getenv("LOG_SERVER_HOST")
+	if serverHost == "" {
+		serverHost = "localhost"
+	}
+
+	//get port
+	var serverPort string = os.Getenv("LOG_SERVER_PORT")
+
+	return fmt.Sprintf("http://%s:%s/", serverHost, serverPort)
+
+}
 
 // Gets a slice of points for all fields in the struct
 func GetStructAllFieldPtrs(structure any) ([]any, error) {
@@ -161,12 +178,12 @@ func GetAllTags(structure any, tagName string) []string {
 
 }
 
-// Takes a list of string and concatenates them with a delimiter
+// Takes a list of string and concatenates them with a delimiter /Deprecated
 //
 //   - array list of times to concatenate
 //   - delimiter string to use as seperator
 //   - Returns the string from connected array
-func JoinArray[T string | any](array []T, delimiter string) string {
+func JoinArray_Deprecated[T string | any](array []T, delimiter string) string {
 
 	var connectedString string
 

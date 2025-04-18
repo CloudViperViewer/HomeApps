@@ -17,7 +17,6 @@
 package logging
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -30,14 +29,27 @@ type Log struct {
 	Metadata  string `json:"metadata"`   //optional
 }
 
+// Log levels constants
+const (
+	LevelDebug = 1
+	LevelInfo  = 2
+	LevelWarn  = 3
+	LevelError = 4
+	LevelFatal = 5
+)
+
 // Used to writ the log to the required document and print to terminal
 // Log information
-func WriteLog(logIn Log) {
+func WriteLog(logIn Log) error {
 
 	var level string = getLevel(logIn.Level)
 
 	log.Println(level + "[" + logIn.Service + "] " + logIn.Message)
 
+	// TODO: Implement persistence to file
+	// 1. Writing to a rotating log file
+
+	return nil
 }
 
 // Get Level
@@ -45,7 +57,17 @@ func getLevel(level int) string {
 
 	//match integer to message level
 	switch level {
+	case LevelDebug:
+		return "\033[36m[DEBUG]\033[0m "
+	case LevelInfo:
+		return "\033[32m[INFO]\033[0m "
+	case LevelWarn:
+		return "\033[33m[WARN]\033[0m "
+	case LevelError:
+		return "\033[31m[ERROR]\033[0m "
+	case LevelFatal:
+		return "\033[35m[FATAL]\033[0m "
 	default:
-		return fmt.Sprintln("\033[DEBUG]\033[36m ")
+		return "\033[36m[DEBUG]\033[0m "
 	}
 }

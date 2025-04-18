@@ -17,18 +17,22 @@ import (
 	"io"
 )
 
+// Checks if the api body is empty
+// - body of the api call
+// - error from reading the body
 func IsBodyEmpty(body []byte, err error) error {
 
-	//Checks if error occured or body empty
-	if err != nil || len(body) <= 0 {
-		if err == io.EOF || len(body) <= 0 {
-			return fmt.Errorf("body cannot be empty")
-
-		} else {
-			return fmt.Errorf("failed to read request body: %s", err.Error())
-
-		}
+	//checks if body empty
+	if err == io.EOF || len(body) <= 0 {
+		return fmt.Errorf("body cannot be empty")
 
 	}
+
+	//Checks if error occured or body empty
+	if err != nil {
+		return fmt.Errorf("failed to read request body: %s", err.Error())
+
+	}
+
 	return nil
 }

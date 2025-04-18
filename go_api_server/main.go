@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/api"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
+	"github.com/CloudViperViewer/HomeApps/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -32,7 +32,7 @@ import (
 /*Main function for the api server*/
 func main() {
 
-	//Check logging server has started
+	//Check logging server has started: this has to remain as is because log server unreachable
 	err := checkLoggingServer()
 	if err != nil {
 		log.Fatalf("Error connecting to log server: %s", err.Error())
@@ -50,14 +50,7 @@ func main() {
 // Check if logging server reachable
 func checkLoggingServer() error {
 
-	//Get host
-	var serverHost string = os.Getenv("LOG_SERVER_HOST")
-	if serverHost == "" {
-		serverHost = "localhost"
-	}
-
-	var serverPort string = os.Getenv("LOG_SERVER_PORT")
-	var url string = fmt.Sprintf("http://%s:%s/health", serverHost, serverPort)
+	var url string = fmt.Sprintf("%s%s", utils.GetLogServerUrl(), "health")
 	var err error
 	var response *http.Response
 	var maxRetries int = 10
@@ -77,6 +70,7 @@ func checkLoggingServer() error {
 			log.Printf("Connected to log server")
 			return nil
 		}
+		log.Println(err.Error())
 	}
 
 	return fmt.Errorf("log server not healthy")
