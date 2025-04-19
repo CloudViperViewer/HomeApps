@@ -24,9 +24,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
-	"github.com/CloudViperViewer/HomeApps/go_api_server/utils"
+	"github.com/CloudViperViewer/HomeApps/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -123,13 +124,13 @@ func LogicalExpression(logicalExpression LogicExpression, structure any) (string
 	//joing expression list into one single expression
 	switch logicalExpression.Operator {
 	case "AND":
-		expression = utils.JoinArray(expressionList, " AND ")
+		expression = strings.Join(expressionList, " AND ")
 	case "OR":
-		expression = utils.JoinArray(expressionList, " OR ")
+		expression = strings.Join(expressionList, " OR ")
 	default:
 		//If invalid operator default ot AND and log error
 		log.Printf("Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
-		expression = utils.JoinArray(expressionList, " AND ")
+		expression = strings.Join(expressionList, " AND ")
 	}
 
 	return expression, values, err
@@ -247,14 +248,14 @@ func queryFilter(filter Filter, structure any) (string, []any, error) {
 		for i := range filter.Value {
 			placeHolders[i] = "?"
 		}
-		condition = fmt.Sprintf("%s IN (%s)", field[0], utils.JoinArray(placeHolders, ", "))
+		condition = fmt.Sprintf("%s IN (%s)", field[0], strings.Join(placeHolders, ", "))
 		value = filter.Value
 	case "not in":
 		placeHolders := make([]string, len(filter.Value))
 		for i := range filter.Value {
 			placeHolders[i] = "?"
 		}
-		condition = fmt.Sprintf("%s NOT IN (%s)", field[0], utils.JoinArray(placeHolders, ", "))
+		condition = fmt.Sprintf("%s NOT IN (%s)", field[0], strings.Join(placeHolders, ", "))
 		value = filter.Value
 	default:
 		err = fmt.Errorf("unrecognised operator %s in filter", filter.Operator)
@@ -309,7 +310,7 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 
 	//Construct Query
 	query = fmt.Sprintf("Select %s FROM `%s`.`%s` WHERE %s %s",
-		utils.JoinArray(fields, ", "),
+		strings.Join(fields, ", "),
 		data.GetDatabase(),
 		data.GetTableName(),
 		logicalExpression,

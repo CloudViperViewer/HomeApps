@@ -3,10 +3,10 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	"github.com/CloudViperViewer/HomeApps/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -29,18 +29,18 @@ func DatabaseInit() {
 		}
 
 		if err == nil {
-			log.Println("Connected to Database")
+			utils.LogInfo(utils.ServiceDatabaseApi, "", "Connected to database")
 			return
 		}
 
 		/*5 second delay between attempts*/
-		log.Println("Waiting for database to be ready... Retrying in 5 seconds")
+		utils.LogInfo(utils.ServiceDatabaseApi, "", "Waiting for database to be ready... Retrying in 5 seconds")
 		time.Sleep(5 * time.Second)
 	}
 
 	/*If all ten fail terminate*/
 	if err != nil {
-		log.Fatalf("Failed to connect %v ", err)
+		utils.LogFatal(utils.ServiceDatabaseApi, "", "Failed to connect: %v", err)
 
 	}
 }

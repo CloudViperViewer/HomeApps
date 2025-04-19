@@ -19,7 +19,8 @@ import (
 )
 
 // returns if the server is running
-func IsRunning(c *gin.Context) {
+// - context for the api endpont
+func isRunning(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "running"})
 }

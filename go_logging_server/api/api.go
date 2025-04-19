@@ -35,7 +35,7 @@ func StartUpServer() {
 
 	/*Run router*/
 	if err := router.Run("0.0.0.0:8090"); err != nil {
-		//change to write to log
+		//TODO: Implement structured logging instead of direct console output
 		fmt.Printf("Failed to start server: %v\n", err)
 		os.Exit(1)
 	}
@@ -45,5 +45,6 @@ func StartUpServer() {
 func setupEndPoints(router *gin.Engine) {
 
 	//Health endpint
-	router.GET("/health", IsRunning)
+	router.GET("/health", isRunning)
+	router.POST("/log", handleLogRequest)
 }
