@@ -45,7 +45,7 @@ func WriteLog(logIn Log) error {
 
 	var level string = getLevel(logIn.Level)
 
-	log.Println(level + "[" + logIn.Service + "] " + logIn.Message)
+	log.Println("\n--------------\n" + level + "\n[" + logIn.Service + "]\n" + logIn.TimeStamp + "\n" + logIn.Message)
 
 	// TODO: Implement persistence to file
 	// 1. Writing to a rotating log file
@@ -54,6 +54,7 @@ func WriteLog(logIn Log) error {
 }
 
 // Get Level
+// - level: level of the message
 func getLevel(level int) string {
 
 	//match integer to message level
