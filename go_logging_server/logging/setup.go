@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/CloudViperViewer/HomeApps/utils"
+	"github.com/robfig/cron/v3"
 )
 
 type fileRecord struct {
@@ -82,6 +83,8 @@ func SetupLoggingFiles() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	refreshLogsFiles()
 }
 
 // Initalises the files slice that holds the details for the log files
@@ -150,4 +153,20 @@ func createLogFile(fileName string, path string) (*os.File, error) {
 
 	return file, nil
 
+}
+
+/*Function to handle*/
+func refreshLogsFiles() {
+	c := cron.New()
+
+	//Call refresh of log files
+	_, err := c.AddFunc("00 0 * * *", func() {
+		createLoggingFiles()
+	})
+
+	if err != nil {
+		log.Fatalf("Failed to schedule log refresher: %v", err)
+	}
+
+	c.Start()
 }
