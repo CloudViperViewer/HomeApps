@@ -13,6 +13,7 @@
 * - GetAllTags: gets the tags for a passed struct
 * - JoinArray_Deprecated: concatenates a slice of strings together with a delimiter
 * - CreateDirectory: Creates a file directory
+* - DisplayValue: Finds the index containing the value and returns the corresponding value in the replacement array
  */
 
 package utils
@@ -220,4 +221,44 @@ func CreateDirectory(dir string) error {
 	}
 
 	return nil
+}
+
+/*Finds the index containing the value and returns the corresponding value in the replacement array
+ * value to search for
+ * array to search for the value in
+ * array to get the replacement from
+ * default value if not found
+ */
+func DisplayValue(value any, searchArray []any, replacementArray []any, defaultValue any) any {
+
+	/*loop over search array*/
+	for i, currentValue := range searchArray {
+
+		/*If search array matches value return index in replacementArray*/
+		if currentValue == value {
+			return replacementArray[i]
+		}
+	}
+
+	/*If value not found return default*/
+	return defaultValue
+}
+
+/*Returns the index in array containing value
+ * Value to find
+ * Array to search
+ * returns index -1 if not found
+ */
+func IndexOf(value any, searchArray []any) int {
+
+	//loop over array for index
+	for i, currentValue := range searchArray {
+
+		//If search array matches value return index
+		if currentValue == value {
+			return i
+		}
+	}
+
+	return -1
 }

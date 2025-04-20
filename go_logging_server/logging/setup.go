@@ -33,6 +33,7 @@ import (
 type fileRecord struct {
 	path         string
 	filebaseName string
+	service      string
 	file         *os.File
 }
 
@@ -105,7 +106,8 @@ func initLogFilesData() {
 	files = []fileRecord{
 		{
 			path:         logDatabasePath,
-			filebaseName: logDatabaseApiFileName}}
+			filebaseName: logDatabaseApiFileName,
+			service:      utils.ServiceDatabaseApi}}
 }
 
 // Creates the files for each logging record eg. database
