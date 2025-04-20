@@ -212,7 +212,7 @@ func JoinArray_Deprecated[T string | any](array []T, delimiter string) string {
 func CreateDirectory(dir string) error {
 
 	//create dir
-	var err error = os.Mkdir(dir, os.FileMode(os.O_RDWR))
+	var err error = os.Mkdir(dir, os.FileMode(os.ModePerm))
 
 	//check if error
 	if err != nil && !os.IsExist(err) {
