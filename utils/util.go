@@ -12,6 +12,7 @@
 * - GetTagList: Gets Tags for Specific fields in struct
 * - GetAllTags: gets the tags for a passed struct
 * - JoinArray_Deprecated: concatenates a slice of strings together with a delimiter
+* - CreateDirectory: Creates a file directory
  */
 
 package utils
@@ -204,4 +205,19 @@ func JoinArray_Deprecated[T string | any](array []T, delimiter string) string {
 
 	return connectedString
 
+}
+
+// Creates the passed directory
+// - dir: string of the directory
+func CreateDirectory(dir string) error {
+
+	//create dir
+	var err error = os.Mkdir(dir, os.FileMode(os.ModePerm))
+
+	//check if error
+	if err != nil && !os.IsExist(err) {
+		return fmt.Errorf("failed to create directory: %s, error: %s", dir, err.Error())
+	}
+
+	return nil
 }
