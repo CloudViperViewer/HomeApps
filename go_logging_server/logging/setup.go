@@ -15,6 +15,7 @@
 * - createLoggingFiles: Creates the files for each logging record eg. database
 * - createLogFile: creates the specific log file
 * - CloseLoggingFiles: closes all logging files
+* - refreshLogsFiles: setups schedular to refresh log files
  */
 
 package logging
@@ -45,6 +46,9 @@ const (
 // Files
 var files []fileRecord
 
+// schedulars
+var logRotationScheduler *cron.Cron
+
 // Close log file
 func (f *fileRecord) Close() error {
 	if f.file != nil {
@@ -55,7 +59,8 @@ func (f *fileRecord) Close() error {
 }
 
 // Close all logging files
-func CloseLoggingFiles() {
+func CloseLoggingFiles(stopSchedular bool) {
+	//clos files
 	for i := range files {
 		if files[i].file != nil {
 			files[i].Close()
@@ -63,6 +68,12 @@ func CloseLoggingFiles() {
 		}
 	}
 
+	//top rotation schedular
+	if logRotationScheduler != nil && stopSchedular {
+		logRotationScheduler.Stop()
+		logRotationScheduler = nil
+		log.Println("Log rotation scheduler stopped")
+	}
 }
 
 // Sets up the logging files structure on start up
@@ -78,12 +89,14 @@ func SetupLoggingFiles() {
 		log.Fatal(err)
 	}
 
+	//create files
 	err = createLoggingFiles()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	//start rotation schedular
 	refreshLogsFiles()
 }
 
@@ -98,6 +111,8 @@ func initLogFilesData() {
 // Creates the files for each logging record eg. database
 func createLoggingFiles() error {
 	var err error
+
+	CloseLoggingFiles(false)
 
 	//loops through files
 	for i := range files {
@@ -155,18 +170,34 @@ func createLogFile(fileName string, path string) (*os.File, error) {
 
 }
 
-/*Function to handle*/
+/*
+ * refreshLogsFiles sets up a cron job to refresh log files daily at midnight
+ * by calling createLoggingFiles() to create new dated log files
+ */
 func refreshLogsFiles() {
-	c := cron.New()
+
+	//check schedular already set if it is abort
+	if logRotationScheduler != nil {
+		return
+	}
+
+	//create schedular
+	logRotationScheduler := cron.New()
 
 	//Call refresh of log files
-	_, err := c.AddFunc("00 0 * * *", func() {
-		createLoggingFiles()
+	_, err := logRotationScheduler.AddFunc("00 0 * * *", func() {
+		if err := createLoggingFiles(); err != nil {
+			log.Printf("Failed to refresh log files: %v", err)
+		} else {
+			log.Println("Log files refreshed successfully")
+		}
 	})
 
 	if err != nil {
 		log.Fatalf("Failed to schedule log refresher: %v", err)
 	}
 
-	c.Start()
+	//start schedular
+	logRotationScheduler.Start()
+	log.Println("Log rotation scheduler started")
 }
