@@ -59,7 +59,7 @@ func (f *fileRecord) Close() error {
 }
 
 // Close all logging files
-func CloseLoggingFiles(stopSchedular bool) {
+func CloseLoggingFiles(stopScheduler bool) {
 	//clos files
 	for i := range files {
 		if files[i].file != nil {
@@ -68,8 +68,8 @@ func CloseLoggingFiles(stopSchedular bool) {
 		}
 	}
 
-	//top rotation schedular
-	if logRotationScheduler != nil && stopSchedular {
+	//stop rotation scheduler
+	if logRotationScheduler != nil && stopScheduler {
 		logRotationScheduler.Stop()
 		logRotationScheduler = nil
 		log.Println("Log rotation scheduler stopped")
@@ -182,7 +182,7 @@ func refreshLogsFiles() {
 	}
 
 	//create schedular
-	logRotationScheduler := cron.New()
+	logRotationScheduler = cron.New()
 
 	//Call refresh of log files
 	_, err := logRotationScheduler.AddFunc("00 0 * * *", func() {
