@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/CloudViperViewer/HomeApps/utils"
@@ -45,14 +46,17 @@ const (
 	logDatabaseApiFileName = "databaseApi"
 )
 
-// Files
-var files []fileRecord
+// Files and servies
+var (
+	files       []fileRecord
+	serviceList []string
+	mu          sync.RWMutex
+)
 
 // schedulars
 var logRotationScheduler *cron.Cron
 
 // Global list of services for faster lookups
-var serviceList []string
 
 // Close log file
 func (f *fileRecord) Close() error {

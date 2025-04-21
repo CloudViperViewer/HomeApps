@@ -43,6 +43,9 @@ const (
 	LevelFatal = 5
 )
 
+// Log format template
+const logEntryTemplate = "\n--------------\n%s\n[%s]\n%s\n%s"
+
 // Log message types
 const (
 	logTypeConsole = "console"
@@ -56,7 +59,7 @@ func WriteLog(logIn Log) error {
 	var level string = getLevel(logTypeConsole, logIn.Level)
 	var err error
 
-	log.Println("\n--------------\n" + level + "\n[" + logIn.Service + "]\n" + logIn.TimeStamp + "\n" + logIn.Message)
+	log.Printf(logEntryTemplate, level, logIn.Service, logIn.TimeStamp, logIn.Message)
 
 	// TODO: Implement persistence to file
 	// 1. Writing to a rotating log file
@@ -117,19 +120,26 @@ func writeFile(logIn Log) error {
 	var err error
 
 	//Find index for service
+	mu.RLock()
 	serviceIndex = utils.IndexOf(logIn.Service, serviceList)
+	mu.RUnlock()
+
 	if serviceIndex == -1 {
 		return fmt.Errorf("failed to write to log could not find file for service %s", logIn.Service)
 	}
 
 	//Get file
+	mu.RLock()
 	file = files[serviceIndex].file
+	mu.RUnlock()
 
 	if file == nil {
 		return fmt.Errorf("log file for service %s is nil", logIn.Service)
 	}
 
-	_, err = file.WriteString(fmt.Sprintln("\n--------------\n" + level + "\n[" + logIn.Service + "]\n" + logIn.TimeStamp + "\n" + logIn.Message))
+	mu.Lock()
+	_, err = file.WriteString(fmt.Sprintf(logEntryTemplate, level, logIn.Service, logIn.TimeStamp, logIn.Message))
+	mu.Unlock()
 	return err
 
 }
