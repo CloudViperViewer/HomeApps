@@ -23,7 +23,6 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
@@ -129,7 +128,7 @@ func LogicalExpression(logicalExpression LogicExpression, structure any) (string
 		expression = strings.Join(expressionList, " OR ")
 	default:
 		//If invalid operator default ot AND and log error
-		log.Printf("Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
+		utils.LogWarn(utils.ServiceDatabaseApi, "", "Warning: Unrecognised logical operator %s, defaulting to AND", logicalExpression.Operator)
 		expression = strings.Join(expressionList, " AND ")
 	}
 
@@ -175,7 +174,7 @@ func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, erro
 
 		//check field ptrs didn't error
 		if err != nil {
-			log.Println(err)
+			utils.LogError(utils.ServiceDatabaseApi, "", "error in getting field pointers: %s", err.Error())
 			return nil, err
 		}
 		//Scan row

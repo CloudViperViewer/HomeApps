@@ -24,8 +24,9 @@
 package tables
 
 import (
-	"log"
 	"time"
+
+	"github.com/CloudViperViewer/HomeApps/utils"
 )
 
 // Constants that hold the database and table names
@@ -79,7 +80,7 @@ func (a *AccountTable) Append(value any) {
 	case *Account:
 		a.rows = append(a.rows, *v)
 	default:
-		log.Printf("Append failed: value is not of type Account or *Account")
+		utils.LogError(utils.ServiceDatabaseApi, "", "Append failed: value is not of type Account or *Account")
 	}
 }
 
