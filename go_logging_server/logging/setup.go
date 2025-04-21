@@ -16,6 +16,7 @@
 * - createLogFile: creates the specific log file
 * - CloseLoggingFiles: closes all logging files
 * - refreshLogsFiles: setups schedular to refresh log files
+* - updateServiceList: Update service list based on current files
  */
 
 package logging
@@ -49,6 +50,9 @@ var files []fileRecord
 
 // schedulars
 var logRotationScheduler *cron.Cron
+
+// Global list of services for faster lookups
+var serviceList []string
 
 // Close log file
 func (f *fileRecord) Close() error {
@@ -99,6 +103,9 @@ func SetupLoggingFiles() {
 
 	//start rotation schedular
 	refreshLogsFiles()
+
+	//setup service list
+	updateServiceList()
 }
 
 // Initalises the files slice that holds the details for the log files
@@ -143,29 +150,26 @@ func createLoggingFiles() error {
 func createLogFile(fileName string, path string) (*os.File, error) {
 
 	var file *os.File
+	var fileExists bool
 	var err error
 
 	fileName = fmt.Sprintf("%s/%s %s.md", path, fileName, time.Now().UTC().Format(time.DateOnly))
 
-	//Create file
-	file, err = os.Create(fileName)
+	//check is file exists
+	_, err = os.Stat(fileName)
+	fileExists = !os.IsNotExist(err)
 
-	//check error
+	//create/open file
+	if fileExists {
+		//file exists open file
+		file, err = os.OpenFile(fileName, os.O_APPEND|os.O_RDWR, 0644)
+	} else {
+		file, err = os.Create(fileName)
+	}
+
+	//check if error
 	if err != nil {
-
-		//file exists try to open it
-		if os.IsExist(err) {
-
-			file, err = os.OpenFile(fileName, os.O_APPEND|os.O_RDWR, 0644)
-
-			if err != nil {
-				return nil, fmt.Errorf("failed to create log file %s: %w", fileName, err)
-			}
-
-			return file, nil
-		}
-		return nil, fmt.Errorf("failed to create log file %s: %w", fileName, err)
-
+		return nil, fmt.Errorf("failed to open/create log file %s: %w", fileName, err)
 	}
 
 	return file, nil
@@ -202,4 +206,12 @@ func refreshLogsFiles() {
 	//start schedular
 	logRotationScheduler.Start()
 	log.Println("Log rotation scheduler started")
+}
+
+// Update service list based on current files
+func updateServiceList() {
+	serviceList = serviceList[:0] // Clear without allocating new memory
+	for _, currentFile := range files {
+		serviceList = append(serviceList, currentFile.service)
+	}
 }

@@ -113,17 +113,11 @@ func writeFile(logIn Log) error {
 
 	var file *os.File
 	var serviceIndex int
-	var services []any
 	var level string = getLevel(logTypeFile, logIn.Level)
-
-	//get services list and files
-	for _, currentFile := range files {
-		services = append(services, currentFile.service)
-
-	}
+	var err error
 
 	//Find index for service
-	serviceIndex = utils.IndexOf(logIn.Service, services)
+	serviceIndex = utils.IndexOf(logIn.Service, serviceList)
 	if serviceIndex == -1 {
 		return fmt.Errorf("failed to write to log could not find file for service %s", logIn.Service)
 	}
@@ -131,7 +125,11 @@ func writeFile(logIn Log) error {
 	//Get file
 	file = files[serviceIndex].file
 
-	file.WriteString(fmt.Sprintln("\n--------------\n" + level + "\n[" + logIn.Service + "]\n" + logIn.TimeStamp + "\n" + logIn.Message))
-	return nil
+	if file == nil {
+		return fmt.Errorf("log file for service %s is nil", logIn.Service)
+	}
+
+	_, err = file.WriteString(fmt.Sprintln("\n--------------\n" + level + "\n[" + logIn.Service + "]\n" + logIn.TimeStamp + "\n" + logIn.Message))
+	return err
 
 }

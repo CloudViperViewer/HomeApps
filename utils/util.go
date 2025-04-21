@@ -229,7 +229,7 @@ func CreateDirectory(dir string) error {
  * array to get the replacement from
  * default value if not found
  */
-func DisplayValue(value any, searchArray []any, replacementArray []any, defaultValue any) any {
+func DisplayValue[T comparable](value T, searchArray []T, replacementArray []T, defaultValue T) T {
 
 	/*loop over search array*/
 	for i, currentValue := range searchArray {
@@ -249,7 +249,7 @@ func DisplayValue(value any, searchArray []any, replacementArray []any, defaultV
  * Array to search
  * returns index -1 if not found
  */
-func IndexOf(value any, searchArray []any) int {
+func IndexOf[T comparable](value T, searchArray []T) int {
 
 	//loop over array for index
 	for i, currentValue := range searchArray {
