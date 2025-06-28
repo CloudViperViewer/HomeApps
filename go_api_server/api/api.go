@@ -37,5 +37,7 @@ func StartUpServer() {
 // Setups up endpoints
 func setupEndPoints(router *gin.Engine) {
 
+	//using post to retrieve data and put to add data to db
 	router.POST("/api/select", dbQuerySelect)
+	router.PUT("/api/insert", dbInsert)
 }

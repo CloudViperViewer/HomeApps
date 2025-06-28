@@ -129,7 +129,9 @@ func logMessageHandler(level int, service string, metadata string, msg string, a
 func LogDebug(service string, metadata string, msg string, args ...any) {
 
 	//call handler
-	logMessageHandler(levelDebug, service, metadata, msg, args...)
+	if IsDebugActive() {
+		logMessageHandler(levelDebug, service, metadata, msg, args...)
+	}
 }
 
 /* Creates a Info Log

@@ -14,6 +14,7 @@
 * - JoinArray_Deprecated: concatenates a slice of strings together with a delimiter
 * - CreateDirectory: Creates a file directory
 * - DisplayValue: Finds the index containing the value and returns the corresponding value in the replacement array
+* - IsDebugActive: Checks if env is in debug
  */
 
 package utils
@@ -168,6 +169,11 @@ func GetAllTags(structure any, tagName string) []string {
 	/*Get struct type*/
 	var structType reflect.Type = reflect.TypeOf(structure)
 
+	// If it's a pointer, get the element type
+	if structType.Kind() == reflect.Ptr {
+		structType = structType.Elem()
+	}
+
 	/*Loop over fields and get specific tags*/
 	for i := 0; i < structType.NumField(); i++ {
 		/*get tag for field*/
@@ -261,4 +267,43 @@ func IndexOf[T comparable](value T, searchArray []T) int {
 	}
 
 	return -1
+}
+
+/* Checks if debug mode is active
+ * returns true if debug active
+ */
+func IsDebugActive() bool {
+
+	//debug active
+	if os.Getenv("DEBUG") == "true" {
+		return true
+	}
+
+	//debug not active
+	return false
+}
+
+// Default value returns default if value is empty or nil
+//   - value to check
+//   - default if value is empty
+func DefaultValue(value any, def any) any {
+
+	//check value
+	if value == nil {
+		return def
+	}
+
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			return def
+		}
+	case fmt.Stringer:
+		if v.String() == "" {
+			return def
+		}
+
+	}
+
+	return value
 }

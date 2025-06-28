@@ -16,6 +16,9 @@
 * - queryFilter: Builds filters for db queries
 * - logicalExpression: Creates expressions combining conditions with AND/OR operators
 * - generateSelectQueryString: Generates the query string
+* - ExecuteInsertQuery: Runs a insert query in the db
+* - confirmInsertData: Confirms insert call has required fields
+* - generatesInsertSQLStatment: Generates the insert query
  */
 
 package database
@@ -266,7 +269,7 @@ func queryFilter(filter Filter, structure any) (string, []any, error) {
 }
 
 // Function used to generate the query string
-// - SelectQuery struct
+//   - SelectQuery struct
 func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (string, []any, error) {
 
 	var query string
@@ -316,4 +319,113 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 		paging)
 
 	return query, values, nil
+}
+
+// Executes an insert onto the database table
+//   - db database to insert into
+//   - table data to insert
+func ExecuteInsertQuery(db *sql.DB, table string, rows []map[string]any) error {
+
+	var passedTable tables.Table
+	var tableStruct any
+	var err error
+	var statement string
+	var insertData []any
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "In Execute Insert Query")
+	//get table strcut
+	passedTable, err = tables.TableFactory(table)
+	if err != nil {
+		return err
+	}
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "Table Factory successful")
+
+	tableStruct = passedTable.GetBaseTableStruct()
+
+	//check if req field missing
+	err = confirmInsertData(tableStruct, rows)
+	if err != nil {
+		utils.LogError(utils.ServiceDatabaseApi, "", "error occured: %s", err.Error())
+		return err
+	}
+
+	//Generate insert sql statement
+	statement, insertData = generatesInsertSQLStatment(passedTable, rows)
+
+	//Execute insert
+	_, err = db.Exec(statement, insertData...)
+
+	//check for error
+	if err != nil {
+		utils.LogError(utils.ServiceDatabaseApi, "", "error occured %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// Checks if the passed data is complete and not missing required fields
+//   - table struct
+//   - data to check
+//   - returns error if required data missing
+func confirmInsertData(tableStruct any, rows []map[string]any) error {
+
+	var jsonStrings []string = utils.GetAllTags(tableStruct, "json")
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "Data confirm started")
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "Data to confirm: %v", rows)
+
+	//loop over data
+	for _, row := range rows {
+		utils.LogDebug(utils.ServiceDatabaseApi, "", "row %v", row)
+		//loop over json
+		for _, column := range jsonStrings {
+			var columnName string = strings.TrimSuffix(column, ",omitempty")
+			var currentVal any = row[columnName]
+			utils.LogDebug(utils.ServiceDatabaseApi, "", "columnValue %v", currentVal)
+			var isRequired []string
+			// //get if field is required
+			isRequired, _ = utils.GetTagList(tableStruct, []string{columnName}, "binding")
+			utils.LogDebug(utils.ServiceDatabaseApi, "", "%s: %v", columnName, isRequired)
+			if currentVal == nil && len(isRequired) == 1 && isRequired[0] == "required" {
+				return fmt.Errorf("field is required: %s", columnName)
+			}
+		}
+	}
+
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "Data Confirm Finished")
+	return nil
+}
+
+// Generates insert sql statment
+//   - table to insert into
+func generatesInsertSQLStatment(table tables.Table, data []map[string]any) (string, []any) {
+	var database string = table.GetDatabase()
+	var tableName string = table.GetTableName()
+	var jsonFields []string = utils.GetAllTags(table.GetBaseTableStruct(), "json")
+	//get database column names
+	var columns string = strings.Join(utils.GetAllTags(table.GetBaseTableStruct(), "db"), ", ")
+	//No of rows to insert
+	var rows []string
+	//Data for rows
+	var insertData []any
+
+	//Loop over and create the no of rows for insert
+	for _, row := range data {
+		var wildCards []string
+		//Loop over each column
+		for _, column := range jsonFields {
+			var columnName string = strings.TrimSuffix(column, ",omitempty")
+			insertData = append(insertData, row[columnName])
+			wildCards = append(wildCards, "?")
+
+		}
+		rows = append(rows, fmt.Sprintf("(%s)", strings.Join(wildCards, ", ")))
+	}
+
+	//generates sql script
+	var statement string = fmt.Sprintf("INSERT INTO `%s`.`%s` (%s) VALUES %s", database, tableName, columns, strings.Join(rows, ", \n"))
+
+	//Debug
+	utils.LogDebug(utils.ServiceDatabaseApi, "", "%s", statement)
+
+	return statement, insertData
 }

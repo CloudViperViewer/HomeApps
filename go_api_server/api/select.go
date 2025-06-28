@@ -26,6 +26,7 @@ import (
 	apiutilities "github.com/CloudViperViewer/HomeApps/api_utilities"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/database"
 	"github.com/CloudViperViewer/HomeApps/go_api_server/tables"
+	"github.com/CloudViperViewer/HomeApps/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -81,7 +82,7 @@ func dbQuerySelect(c *gin.Context) {
 	}
 
 	//Confirm data is there
-	err = confirmData(selectQ)
+	err = selectConfirmData(selectQ)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "bad request",
@@ -112,12 +113,12 @@ func dbQuerySelect(c *gin.Context) {
 		})
 		return
 	}
-
+	utils.LogInfo(utils.ServiceDatabaseApi, "", "Select successful")
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": data.GetRows()})
 }
 
 // Confirms the passed meets requirments
-func confirmData(selectQ selectQuery) error {
+func selectConfirmData(selectQ selectQuery) error {
 
 	var missingData []string
 

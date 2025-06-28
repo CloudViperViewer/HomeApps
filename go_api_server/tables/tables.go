@@ -38,10 +38,9 @@ func TableFactory(key string) (Table, error) {
 	switch key {
 	case BankTableKey:
 		return &BankTable{}, nil
-	case AccountTableKey:
-		return &AccountTable{}, nil
+	// case AccountTableKey:
+	// 	return &AccountTable{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported table key: %s", key)
 	}
-
 }
