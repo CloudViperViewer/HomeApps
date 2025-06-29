@@ -61,7 +61,7 @@ services:
       - DB_HOST=db
       - DB_NAME=home_db
       - DB_PORT=3308
-      - LOG_SERVER_HOST=192.168.0.171
+      - LOG_SERVER_HOST=192.168.0.126
       - LOG_SERVER_PORT=8092
       - DEBUG=true
     networks:

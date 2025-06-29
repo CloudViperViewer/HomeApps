@@ -41,7 +41,6 @@ func dbInsert(c *gin.Context) {
 	var err error
 	const maxBodySize = 1 << 20 //1MB
 	var insertQ insert
-	// var table tables.Table
 
 	//Read the body
 	body, err = io.ReadAll(io.LimitReader(c.Request.Body, maxBodySize))
@@ -93,7 +92,7 @@ func dbInsert(c *gin.Context) {
 	}
 
 	//execute query
-	_, err = database.ExecuteInsertQuery(database.GetDb(), insertQ.Table, insertQ.Rows)
+	err = database.ExecuteInsertQuery(database.GetDb(), insertQ.Table, insertQ.Rows)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "internal server error",
@@ -105,6 +104,10 @@ func dbInsert(c *gin.Context) {
 
 	//log successful insert
 	utils.LogInfo(utils.ServiceDatabaseApi, "", "Insert Successful")
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Insert successful",
+		"rows":    len(insertQ.Rows),
+	})
 
 }
 

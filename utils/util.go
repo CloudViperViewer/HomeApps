@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 )
 
 // Gets the url for the logging server
@@ -274,8 +275,9 @@ func IndexOf[T comparable](value T, searchArray []T) int {
  */
 func IsDebugActive() bool {
 
+	var debugVal string = strings.ToLower(os.Getenv("DEBUG"))
 	//debug active
-	if os.Getenv("DEBUG") == "true" {
+	if debugVal == "true" {
 		return true
 	}
 
