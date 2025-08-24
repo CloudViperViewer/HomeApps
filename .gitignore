@@ -1,1 +1,28 @@
-db.sql
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+.cache/
+
+# Go
+bin/
+*.test
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.sql
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker
+**/.env
