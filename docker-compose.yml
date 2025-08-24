@@ -43,7 +43,19 @@ services:
     networks:
       - home-net
 
-
+  ui_dev:
+    build: 
+      context: ./home_app_ui
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./home_app_ui:/app
+      - /app/node_modules
+    networks:
+      - home-net
+    environment:
+      - NODE_ENV=development
 
 
 ## Test Enviroment ##
