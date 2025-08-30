@@ -6,12 +6,12 @@
  * default if no replacement found
  * Returns either default or replacement value
  */
-export function DisplayValue<T, U>(
+export function DisplayValue<T, U, D extends U | null | undefined = U>(
   value: T,
   arrayToSearch: T[],
   arrayToFindIndex: U[],
-  Default: any
-) {
+  Default: D
+): U | D {
   const index = arrayToSearch.indexOf(value);
   if (index === -1 || index >= arrayToFindIndex.length) {
     return Default;

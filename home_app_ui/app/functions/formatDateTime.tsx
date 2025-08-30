@@ -1,11 +1,10 @@
-/*
- * Takes a value finds its index in the first array and replaces it with the same index in second array
- * DateTime Date and time to format to string
- * Returns string
-
+/**
+ * Format a date/time into "dd/mm/yyyy, hh:mm" (en-AU).
  */
-export function FormateDateTime(DateTime: Date) {
-  return new Date(DateTime).toLocaleDateString("en-AU", {
+export function formateDateTime(input: Date | string | number): string {
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("en-AU", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

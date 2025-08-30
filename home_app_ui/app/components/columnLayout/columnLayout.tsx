@@ -7,10 +7,15 @@ interface columnLayoutPop {
 
 function ColumnLayout({ children, className = "" }: columnLayoutPop) {
   const noOfColumns = React.Children.toArray(children).filter(
-    (child) => React.isValidElement(child) && child.type.name === "column"
+    (child) =>
+      React.isValidElement(child) && (child.type as any)._IS_COLUMN_ === true
   ).length;
+  const columns = Math.max(1, noOfColumns);
   return (
-    <div className={`grid grid-cols-${noOfColumns} ${className}`}>
+    <div
+      className={`grid ${className}`}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+    >
       {children}
     </div>
   );

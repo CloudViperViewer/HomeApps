@@ -8,7 +8,8 @@ import Column from "@/app/components/columnLayout/column";
 import ReadOnlyTextField from "@/app/components/readOnlyFields/readOnlyTextField";
 import { BankDT } from "@/app/components/dataTypes/BankDT";
 import { TransactionDT } from "@/app/components/dataTypes/TransactionDT";
-import { FormateDateTime } from "@/app/functions/formatDateTime";
+import { formateDateTime } from "@/app/functions/formatDateTime";
+import { FormateCurrency } from "@/app/functions/formatCurrency";
 
 type Params = { accountId: string };
 
@@ -38,10 +39,23 @@ async function AccountSummary({ params }: { params: Params }) {
     pagingInfo: { startIndex: 1, batchSize: 1 },
   };
   const accountCall = await post("api/select", accountsQuery);
-  const accountData: AccountDT = accountCall.data.map(
-    (account: AccountDT) => account
-  )[0];
-  /*Get bank details*/
+  //Check for successful call
+  {
+    if (
+      !accountCall.success ||
+      !Array.isArray(accountCall.data) ||
+      accountCall.data.length === 0
+    ) {
+      return (
+        <Card className="bg-white">
+          <div>Error occurred when retrieving account data</div>
+        </Card>
+      );
+    }
+  }
+  //Dereference account
+  const accountData: AccountDT = accountCall.data[0] as AccountDT;
+  /*Get bank query*/
   const bankQuery: Query = {
     table: "Bank",
     fields: ["BankName"],
@@ -57,9 +71,8 @@ async function AccountSummary({ params }: { params: Params }) {
     },
     pagingInfo: { startIndex: 1, batchSize: 10 },
   };
-  const bankCall = await post("api/select", bankQuery);
-  const bankData: BankDT = bankCall.data.map((bank: BankDT) => bank)[0];
-  /*Get Transaction Details*/
+
+  /*Transaction query*/
   const transactionQuery: Query = {
     table: "Transaction",
     fields: [
@@ -84,56 +97,66 @@ async function AccountSummary({ params }: { params: Params }) {
     },
     pagingInfo: { startIndex: 1, batchSize: 25 },
   };
-  const transactionCall = await post("api/select", transactionQuery);
+  /*Get bank and transaction data*/
+  const [bankCall, transactionCall] = await Promise.all([
+    post("api/select", bankQuery),
+    post("api/select", transactionQuery),
+  ]);
+  const bankData: BankDT | undefined =
+    bankCall.success && Array.isArray(bankCall.data)
+      ? bankCall.data.map((bank: BankDT) => bank)[0]
+      : undefined;
 
+  /*Return account data*/
   return (
     <Card className="bg-white">
-      {accountCall.success ? (
-        <>
-          <PageHeader headerText={accountData.accountName} />
-          <div className="p-3">
-            <ColumnLayout className="mt-5">
-              <Column>
-                <ReadOnlyTextField
-                  label="Account Name"
-                  value={accountData.accountName}
-                />
-                <ReadOnlyTextField label="Account Type" value="Place Holder" />
-                <ReadOnlyTextField label="BSB" value={accountData.BSB} />
-                <ReadOnlyTextField
-                  label="Account Number"
-                  value={accountData.accountNumber}
-                />
-                <ReadOnlyTextField
-                  label="Bank"
-                  value={bankCall.success && bankData.BankName}
-                />
-              </Column>
-              <Column>
-                <ReadOnlyTextField
-                  label="Balance"
-                  value={`$${accountData.balance}`}
-                />
-              </Column>
-            </ColumnLayout>
-            <Card className="mt-5">
-              <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 rounded-s-lg">
-                      Transaction Type
-                    </th>
-                    <th className="px-6 py-3 rounded-s-lg">Transaction With</th>
-                    <th className="px-6 py-3 rounded-s-lg">
-                      Transaction Date Time
-                    </th>
-                    <th className="px-6 py-3 rounded-s-lg">Value</th>
-                    <th className="px-6 py-3">Bill Reference</th>
-                    <th className="px-6 py-3 rounded-e-lg">Paypal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactionCall.data.map((transaction: TransactionDT) => (
+      (
+      <>
+        <PageHeader headerText={accountData.accountName} />
+        <div className="p-3">
+          <ColumnLayout className="mt-5">
+            <Column>
+              <ReadOnlyTextField
+                label="Account Name"
+                value={accountData.accountName}
+              />
+              <ReadOnlyTextField label="Account Type" value="Place Holder" />
+              <ReadOnlyTextField label="BSB" value={accountData.BSB} />
+              <ReadOnlyTextField
+                label="Account Number"
+                value={accountData.accountNumber}
+              />
+              <ReadOnlyTextField
+                label="Bank"
+                value={bankData?.BankName ?? ""}
+              />
+            </Column>
+            <Column>
+              <ReadOnlyTextField
+                label="Balance"
+                value={`$${accountData.balance}`}
+              />
+            </Column>
+          </ColumnLayout>
+          <Card className="mt-5">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" className="px-6 py-3 rounded-s-lg">
+                    Transaction Type
+                  </th>
+                  <th className="px-6 py-3 rounded-s-lg">Transaction With</th>
+                  <th className="px-6 py-3 rounded-s-lg">
+                    Transaction Date Time
+                  </th>
+                  <th className="px-6 py-3 rounded-s-lg">Value</th>
+                  <th className="px-6 py-3">Bill Reference</th>
+                  <th className="px-6 py-3 rounded-e-lg">Paypal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(transactionCall.success ? transactionCall.data : []).map(
+                  (transaction: TransactionDT) => (
                     <tr
                       className="bg-white dark:bg-gray-800"
                       key={transaction.TransactionID}
@@ -148,23 +171,26 @@ async function AccountSummary({ params }: { params: Params }) {
                         {transaction.TransactionWith}
                       </td>
                       <td className="px-6 py-4">
-                        {FormateDateTime(transaction.DateTime)}
+                        {formateDateTime(transaction.DateTime)}
                       </td>
-                      <td className="px-6 py-4">{transaction.Value}</td>
                       <td className="px-6 py-4">
-                        {transaction.OnOffBillId.Int16}
+                        {FormateCurrency(transaction.Value)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {transaction.OnOffBillId?.Valid
+                          ? transaction.OnOffBillId.Int16
+                          : ""}
                       </td>
                       <td className="px-6 py-4">{transaction.ViaPaypal}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-          </div>
-        </>
-      ) : (
-        <div>Error occured when retrieving account data</div>
-      )}
+                  )
+                )}
+              </tbody>
+            </table>
+          </Card>
+        </div>
+      </>
+      )
     </Card>
   );
 }

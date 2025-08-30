@@ -1,16 +1,16 @@
 interface readOnlyTextFieldProps {
   label: string;
-  value: string | number | boolean;
+  value: React.ReactNode;
   className?: string;
 }
 
-function readOnlyTextField({
+function ReadOnlyTextField({
   label,
   value,
   className = "",
 }: readOnlyTextFieldProps) {
   return (
-    <div className={`mt-1, mb-1 ${className}`}>
+    <div className={`mt-1 mb-1 ${className}`}>
       <div>
         <b>{label}</b>
       </div>
@@ -19,4 +19,4 @@ function readOnlyTextField({
   );
 }
 
-export default readOnlyTextField;
+export default ReadOnlyTextField;

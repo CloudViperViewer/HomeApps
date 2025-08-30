@@ -1,3 +1,5 @@
+//Landing page for the bank Record list
+
 import React from "react";
 import post, { Query } from "../../components/apis/post";
 import Card from "../../components/card/card";
@@ -5,6 +7,7 @@ import { BankDT } from "@/app/components/dataTypes/BankDT";
 import PageHeader from "@/app/components/headers/pageHeader";
 
 async function Banks() {
+  /*Bank query*/
   const query: Query = {
     table: "Bank",
     fields: ["BankID", "BankName"],
@@ -22,15 +25,24 @@ async function Banks() {
   };
   //Call api
   const data = await post("api/select", query);
+
   return (
     <Card className="bg-white">
       <PageHeader headerText="Banks" />
       {data.success === true ? (
-        data.data.map((item: BankDT) => (
-          <Card key={item.BankId} className="mt-5">
-            {item.BankName}
-          </Card>
-        ))
+        data.data.map((raw: any) => {
+          //convert to bank dt
+          const item: BankDT = {
+            BankId: raw.BankId ?? raw.BankID,
+            BankName: raw.BankName,
+          };
+          //Construct Bank Card
+          return (
+            <Card key={item.BankId} className="mt-5">
+              {item.BankName}
+            </Card>
+          );
+        })
       ) : (
         <div>Failed</div>
       )}

@@ -7,7 +7,7 @@
 
 * Constants
 * - financeDatabase: name of the database of the table
-* - finRefTransactionTable: name of the table for Transaction
+* - finTransactionTable: name of the table for Transaction
 
 * Structures
 * - Transaction: Structure for the Transaction table
@@ -17,7 +17,8 @@
 * Functions:
 * - GetDatabase: Gets the table database
 * - GetTableName: Gets the name of the table
-* - GetAllData: Returns the rows for the table
+* - GetBaseTableStruct: Returns the base struct for scanning
+* - GetRows: Returns appended rows
 * - Append: adds data to the list
  */
 
@@ -28,6 +29,7 @@ import (
 	"time"
 
 	"github.com/CloudViperViewer/HomeApps/utils"
+	"github.com/shopspring/decimal"
 )
 
 // Constants that hold the database and table names
@@ -38,20 +40,20 @@ const (
 
 // Struct representing the database table
 type Transaction struct {
-	TransactionID      int           `db:"transaction_id" json:"TransactionId,omitempty"`
-	AccountId          int           `db:"account_id" json:"AccountId,omitempty" binding:"required"`
-	TransactionTypeId  int           `db:"transaction_type_id" json:"TransactionTypeId,omitempty" binding:"required"`
-	Value              float32       `db:"value" json:"Value,omitempty" binding:"required"`
-	RecurringPaymentId sql.NullInt16 `db:"recurring_payment_id" json:"RecurringPaymentId,omitempty"`
-	OnOffBillId        sql.NullInt16 `db:"on_off_bill_id" json:"OnOffBillId,omitempty"`
-	ViaPaypal          bool          `db:"via_paypal" json:"ViaPaypal,omitempty"`
-	DateTime           time.Time     `db:"date_time" json:"DateTime,omitempty" binding:"required"`
-	TransactionWith    string        `db:"transaction_with" json:"TransactionWith,omitempty"`
-	CreatedBy          string        `db:"created_by" json:"CreatedBy,omitempty" binding:"required"`
-	CreatedOn          time.Time     `db:"created_on" json:"CreatedOn,omitempty" binding:"required"`
-	UpdatedBy          string        `db:"updated_by" json:"UpdatedBy,omitempty"`
-	UpdatedOn          time.Time     `db:"updated_on" json:"UpdatedOn,omitempty"`
-	IsActive           bool          `db:"is_active" json:"IsActive,omitempty"`
+	TransactionID      int             `db:"transaction_id" json:"TransactionId,omitempty"`
+	AccountId          int             `db:"account_id" json:"AccountId,omitempty" binding:"required"`
+	TransactionTypeId  int             `db:"transaction_type_id" json:"TransactionTypeId,omitempty" binding:"required"`
+	Value              decimal.Decimal `db:"value" json:"Value,omitempty" binding:"required"`
+	RecurringPaymentId sql.NullInt16   `db:"recurring_payment_id" json:"RecurringPaymentId,omitempty"`
+	OnOffBillId        sql.NullInt16   `db:"on_off_bill_id" json:"OnOffBillId,omitempty"`
+	ViaPaypal          bool            `db:"via_paypal" json:"ViaPaypal"`
+	DateTime           time.Time       `db:"date_time" json:"DateTime,omitempty" binding:"required"`
+	TransactionWith    string          `db:"transaction_with" json:"TransactionWith,omitempty"`
+	CreatedBy          string          `db:"created_by" json:"CreatedBy,omitempty" binding:"required"`
+	CreatedOn          time.Time       `db:"created_on" json:"CreatedOn,omitempty" binding:"required"`
+	UpdatedBy          string          `db:"updated_by" json:"UpdatedBy,omitempty"`
+	UpdatedOn          time.Time       `db:"updated_on" json:"UpdatedOn,omitempty"`
+	IsActive           bool            `db:"is_active" json:"IsActive"`
 }
 
 // Defines a slice of Transactions

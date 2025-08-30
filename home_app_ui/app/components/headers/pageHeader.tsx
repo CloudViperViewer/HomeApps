@@ -1,16 +1,14 @@
-interface pageHeaderProps {
+interface PageHeaderProps {
   headerText: string;
 }
 
-function pageHeader({ headerText }: pageHeaderProps) {
+function PageHeader({ headerText }: PageHeaderProps) {
   return (
     <>
-      <h1 className="text-2xl">
-        <b>{headerText}</b>
-      </h1>
+      <h1 className="text-2xl font-bold">{headerText}</h1>
       <hr className="mt-2" />
     </>
   );
 }
 
-export default pageHeader;
+export default PageHeader;
