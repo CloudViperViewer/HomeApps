@@ -40,6 +40,8 @@ func TableFactory(key string) (Table, error) {
 		return &BankTable{}, nil
 	case AccountTableKey:
 		return &AccountTable{}, nil
+	case TransactionTableKey:
+		return &TransactionTable{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported table key: %s", key)
 	}

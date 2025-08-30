@@ -8,8 +8,7 @@ interface CardProps {
 }
 
 function Card({ children, link = "", className = "" }: CardProps) {
-  const baseStyle =
-    "rounded-xl border border-gray-200 bg-white p-6 shadow transition";
+  const baseStyle = "rounded-xl border border-gray-200 p-6 shadow transition";
 
   const clickableStyle = "hover:shadow-lg cursor-pointer";
   const disabledStyle = "cursor-default";

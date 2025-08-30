@@ -1,7 +1,8 @@
 import React from "react";
 import post, { Query } from "../../components/apis/post";
 import Card from "../../components/card/card";
-import Link from "next/link";
+import { BankDT } from "@/app/components/dataTypes/BankDT";
+import PageHeader from "@/app/components/headers/pageHeader";
 
 async function Banks() {
   const query: Query = {
@@ -16,18 +17,17 @@ async function Banks() {
           value: [true],
         },
       ],
-      logicalExpressions: null,
     },
     pagingInfo: { startIndex: 1, batchSize: 10 },
   };
   //Call api
   const data = await post("api/select", query);
   return (
-    <Card>
-      <h1>Banks</h1>
+    <Card className="bg-white">
+      <PageHeader headerText="Banks" />
       {data.success === true ? (
-        data.data.map((item, index) => (
-          <Card key={index} className="mt-5">
+        data.data.map((item: BankDT) => (
+          <Card key={item.BankId} className="mt-5">
             {item.BankName}
           </Card>
         ))

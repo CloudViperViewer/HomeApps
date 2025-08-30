@@ -15,7 +15,7 @@ export interface filter {
 export interface logicalExpression {
   operator: string;
   filters: filter[];
-  logicalExpressions: logicalExpression[];
+  logicalExpressions?: logicalExpression[];
 }
 
 export interface pagingInfo {
