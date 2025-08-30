@@ -1,9 +1,7 @@
-import { headers } from "next/headers";
-import React from "react";
-
 export interface PostResponse {
   data: any;
   success: boolean;
+  totalCount: number;
 }
 
 export interface filter {
@@ -28,6 +26,7 @@ export interface Query {
   fields: string[];
   logicalExpression: logicalExpression;
   pagingInfo: pagingInfo;
+  fetchTotalCount?: boolean;
 }
 
 const post = async (endPoint: string, query: Query) => {
@@ -52,6 +51,7 @@ const post = async (endPoint: string, query: Query) => {
       const data: PostResponse = {
         success: false,
         data: null,
+        totalCount: 0,
       };
       return data;
     }
@@ -63,6 +63,7 @@ const post = async (endPoint: string, query: Query) => {
     const data: PostResponse = {
       success: false,
       data: null,
+      totalCount: 0,
     };
     return data;
   }

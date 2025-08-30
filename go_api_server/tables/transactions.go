@@ -34,13 +34,14 @@ import (
 
 // Constants that hold the database and table names
 const (
-	finTransactionTable = "fin_transaction"
-	TransactionTableKey = "Transaction"
+	finTransactionTable  = "fin_transaction"
+	TransactionTableKey  = "Transaction"
+	TransactonPrimaryKey = "TransactionId"
 )
 
 // Struct representing the database table
 type Transaction struct {
-	TransactionID      int             `db:"transaction_id" json:"transactionId,omitempty"`
+	TransactionId      int             `db:"transaction_id" json:"transactionId,omitempty"`
 	AccountId          int             `db:"account_id" json:"accountId,omitempty" binding:"required"`
 	TransactionTypeId  int             `db:"transaction_type_id" json:"transactionTypeId,omitempty" binding:"required"`
 	Value              decimal.Decimal `db:"value" json:"value,omitempty" binding:"required"`
@@ -69,6 +70,11 @@ func (t *TransactionTable) GetDatabase() string {
 // Get Transaction table name
 func (t *TransactionTable) GetTableName() string {
 	return finTransactionTable
+}
+
+// Get Transaction Primary key
+func (t *TransactionTable) GetPrimaryKey() string {
+	return TransactonPrimaryKey
 }
 
 // Returns the rows for the table

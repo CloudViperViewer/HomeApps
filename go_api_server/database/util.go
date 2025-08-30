@@ -38,11 +38,13 @@ import (
 // - Fields to return in query
 // - Logical expression to filter query
 // - page size of query cruicial for performance
+// - says if the api will return a total count
 type SelectQuery struct {
 	Table           tables.Table
 	Fields          []string
 	LogicExpression LogicExpression
 	PagingInfo      PagingInfo
+	FetchTotalCount bool
 }
 
 // Determines how many rows to return and what index to start
@@ -141,24 +143,44 @@ func LogicalExpression(logicalExpression LogicExpression, structure any) (string
 
 // Generic select statment for db query
 // - SelectQuery - select query struct holding the query instructions
-func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, error) {
+func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, int, error) {
 
 	var err error
 	var values []any
 	var query string
+	var totalCountQuery string
+	var totalCountValues []any
 	var rows *sql.Rows
+	var totalCount int
+
 	var data tables.Table = selectQuery.Table
 
-	query, values, err = generateSelectQueryString(selectQuery, data)
+	//Get standard query
+	query, values, err = generateSelectQueryString(selectQuery, data, false)
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	//Execute query
 	rows, err = db.Query(query, values...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	//Get total count
+	if selectQuery.FetchTotalCount {
+		totalCountQuery, totalCountValues, err = generateSelectQueryString(selectQuery, data, true)
+
+		if err != nil {
+			return nil, 0, err
+		}
+
+		err = db.QueryRow(totalCountQuery, totalCountValues...).Scan(&totalCount)
+		if err != nil {
+			return nil, 0, err
+		}
+
 	}
 
 	//Close the query after the function is completed
@@ -178,11 +200,11 @@ func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, erro
 		//check field ptrs didn't error
 		if err != nil {
 			utils.LogError(utils.ServiceDatabaseApi, "", "error in getting field pointers: %s", err.Error())
-			return nil, err
+			return nil, 0, err
 		}
 		//Scan row
 		if err = rows.Scan(fieldPtrs...); err != nil {
-			return nil, fmt.Errorf("failed to scan row %s", err)
+			return nil, 0, fmt.Errorf("failed to scan row %s", err)
 
 		}
 
@@ -190,7 +212,11 @@ func ExecuteSelectQuery(db *sql.DB, selectQuery SelectQuery) (tables.Table, erro
 		data.Append(baseTable)
 	}
 
-	return data, nil
+	if selectQuery.FetchTotalCount {
+		return data, totalCount, nil
+	}
+
+	return data, 0, nil
 
 }
 
@@ -270,7 +296,7 @@ func queryFilter(filter Filter, structure any) (string, []any, error) {
 
 // Function used to generate the query string
 //   - SelectQuery struct
-func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (string, []any, error) {
+func generateSelectQueryString(selectQuery SelectQuery, data tables.Table, getTotalCount bool) (string, []any, error) {
 
 	var query string
 	var paging string
@@ -279,23 +305,30 @@ func generateSelectQueryString(selectQuery SelectQuery, data tables.Table) (stri
 	var values []any
 	var err error
 
-	if selectQuery.PagingInfo == (PagingInfo{}) {
+	if selectQuery.PagingInfo == (PagingInfo{}) && !getTotalCount {
 		return "", nil, fmt.Errorf("paging info cannot be empty")
 	}
 
-	if selectQuery.PagingInfo.BatchSize == -1 {
+	if selectQuery.PagingInfo.BatchSize == -1 && !getTotalCount {
 		paging = fmt.Sprintf("LIMIT 100000000 OFFSET %v", selectQuery.PagingInfo.StartIndex-1)
-	} else {
+	} else if !getTotalCount {
 		paging = fmt.Sprintf("LIMIT %v OFFSET %v", selectQuery.PagingInfo.BatchSize, selectQuery.PagingInfo.StartIndex-1)
+	} else {
+		paging = ""
 	}
 
 	//Get db Fields
-	if len(selectQuery.Fields) == 0 {
+	if len(selectQuery.Fields) == 0 && !getTotalCount {
 		fields = append(fields, "*")
-	} else {
+	} else if !getTotalCount {
 		fields, err = utils.GetTagList(data.GetBaseTableStruct(),
 			selectQuery.Fields,
 			"db")
+	} else {
+		fields, err = utils.GetTagList(data.GetBaseTableStruct(),
+			[]string{data.GetPrimaryKey()},
+			"db")
+		fields = []string{fmt.Sprintf("Count(%s)", strings.Join(fields, ""))}
 	}
 
 	//Check fields returned

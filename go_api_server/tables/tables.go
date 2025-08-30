@@ -28,6 +28,7 @@ const (
 type Table interface {
 	GetDatabase() string
 	GetTableName() string
+	GetPrimaryKey() string
 	GetBaseTableStruct() any
 	Append(value any)
 	GetRows() any

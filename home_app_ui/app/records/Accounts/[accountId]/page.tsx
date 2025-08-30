@@ -18,11 +18,11 @@ async function AccountSummary({ params }: { params: Params }) {
   const accountsQuery: Query = {
     table: "Account",
     fields: [
-      "BankID",
+      "BankId",
       "AccountName",
       "Balance",
-      "AccountID",
-      "AccountTypeID",
+      "AccountId",
+      "AccountTypeId",
       "AccountNumber",
       "BSB",
     ],
@@ -31,14 +31,16 @@ async function AccountSummary({ params }: { params: Params }) {
       filters: [
         {
           operator: "=",
-          field: "AccountID",
+          field: "AccountId",
           value: [Number(params.accountId)],
         },
       ],
     },
     pagingInfo: { startIndex: 1, batchSize: 1 },
   };
+
   const accountCall = await post("api/select", accountsQuery);
+
   //Check for successful call
   {
     if (
@@ -55,6 +57,7 @@ async function AccountSummary({ params }: { params: Params }) {
   }
   //Dereference account
   const accountData: AccountDT = accountCall.data[0] as AccountDT;
+
   /*Get bank query*/
   const bankQuery: Query = {
     table: "Bank",
@@ -64,7 +67,7 @@ async function AccountSummary({ params }: { params: Params }) {
       filters: [
         {
           operator: "=",
-          field: "BankID",
+          field: "BankId",
           value: [accountData.bankId],
         },
       ],
@@ -76,7 +79,7 @@ async function AccountSummary({ params }: { params: Params }) {
   const transactionQuery: Query = {
     table: "Transaction",
     fields: [
-      "TransactionID",
+      "TransactionId",
       "TransactionTypeId",
       "Value",
       "RecurringPaymentId",
@@ -95,7 +98,8 @@ async function AccountSummary({ params }: { params: Params }) {
         },
       ],
     },
-    pagingInfo: { startIndex: 1, batchSize: 25 },
+    pagingInfo: { startIndex: 1, batchSize: 5 },
+    fetchTotalCount: true,
   };
   /*Get bank and transaction data*/
   const [bankCall, transactionCall] = await Promise.all([
