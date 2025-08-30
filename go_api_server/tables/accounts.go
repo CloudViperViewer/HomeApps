@@ -32,16 +32,17 @@ import (
 
 // Constants that hold the database and table names
 const (
-	finAccountTable = "fin_accounts"
-	AccountTableKey = "Account"
+	finAccountTable   = "fin_accounts"
+	AccountTableKey   = "Account"
+	AccountPrimaryKey = "AccountId"
 )
 
 // Struct representing the database table
 type Account struct {
-	AccountID     int                 `db:"account_id" json:"accountId,omitempty"`
+	AccountId     int                 `db:"account_id" json:"accountId,omitempty"`
 	AccountName   string              `db:"account_name" json:"accountName,omitempty"`
-	AccountTypeID int                 `db:"account_type_id" json:"accountTypeId,omitempty"`
-	BankID        int                 `db:"bank_id" json:"bankId,omitempty"`
+	AccountTypeId int                 `db:"account_type_id" json:"accountTypeId,omitempty"`
+	BankId        int                 `db:"bank_id" json:"bankId,omitempty"`
 	AccountNumber string              `db:"account_number" json:"accountNumber,omitempty"`
 	BSB           string              `db:"bsb" json:"bsb,omitempty"`
 	Balance       decimal.NullDecimal `db:"balance" json:"balance,omitempty"`
@@ -65,6 +66,11 @@ func (a *AccountTable) GetDatabase() string {
 // Get account table name
 func (a *AccountTable) GetTableName() string {
 	return finAccountTable
+}
+
+// Get Transaction Primary key
+func (t *AccountTable) GetPrimaryKey() string {
+	return AccountPrimaryKey
 }
 
 // Returns the rows for the table

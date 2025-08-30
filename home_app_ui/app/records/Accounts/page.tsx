@@ -14,7 +14,7 @@ async function Accounts() {
   /*Get bank data for references*/
   const bankQuery: Query = {
     table: "Bank",
-    fields: ["BankID", "BankName"],
+    fields: ["BankId", "BankName"],
     logicalExpression: {
       operator: "AND",
       filters: [
@@ -30,7 +30,7 @@ async function Accounts() {
   /*Get Accounts*/
   const accountsQuery: Query = {
     table: "Account",
-    fields: ["BankID", "AccountName", "Balance", "AccountID", "AccountTypeID"],
+    fields: ["AccountId", "BankId", "AccountName", "Balance", "AccountTypeId"],
     logicalExpression: {
       operator: "AND",
       filters: [
@@ -49,6 +49,7 @@ async function Accounts() {
     post("api/select", bankQuery),
     post("api/select", accountsQuery),
   ]);
+  console.log(accounts);
   //Check for successful call
   {
     if (

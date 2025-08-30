@@ -36,6 +36,7 @@ type selectQuery struct {
 	Fields            []string                 `json:"fields"`
 	LogicalExpression database.LogicExpression `json:"logicalExpression"`
 	PagingInfo        database.PagingInfo      `json:"pagingInfo"`
+	FetchTotalCount   bool                     `json: fetchTotalCount`
 }
 
 // Handles db select endpoint
@@ -46,6 +47,7 @@ func dbQuerySelect(c *gin.Context) {
 	const maxBodySize = 1 << 20 //1MB
 	var selectQ selectQuery
 	var data tables.Table
+	var totalCount int
 
 	//Read the body
 	body, err = io.ReadAll(io.LimitReader(c.Request.Body, maxBodySize))
@@ -92,7 +94,7 @@ func dbQuerySelect(c *gin.Context) {
 	}
 
 	//Query db
-	data, err = queryDb(selectQ)
+	data, totalCount, err = queryDb(selectQ)
 	if err != nil {
 
 		//Determine status code
@@ -114,7 +116,7 @@ func dbQuerySelect(c *gin.Context) {
 		return
 	}
 	utils.LogInfo(utils.ServiceDatabaseApi, "", "Select successful")
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": data.GetRows()})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": data.GetRows(), "totalCount": totalCount})
 }
 
 // Confirms the passed meets requirments
@@ -153,31 +155,33 @@ func selectConfirmData(selectQ selectQuery) error {
 * - The query execution fails
 * - The data mapping fails
  */
-func queryDb(selectQ selectQuery) (tables.Table, error) {
+func queryDb(selectQ selectQuery) (tables.Table, int, error) {
 
 	var SQuery database.SelectQuery = database.SelectQuery{
 		PagingInfo:      selectQ.PagingInfo,
 		Fields:          selectQ.Fields,
 		LogicExpression: selectQ.LogicalExpression,
+		FetchTotalCount: selectQ.FetchTotalCount,
 	}
 	var err error
 	var data tables.Table
+	var totalCount int = 0
 
 	//Get table
 	SQuery.Table, err = tables.TableFactory(selectQ.Table)
 
 	//Table factory failed
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	data, err = database.ExecuteSelectQuery(database.GetDb(), SQuery)
+	data, totalCount, err = database.ExecuteSelectQuery(database.GetDb(), SQuery)
 
 	//Query failed
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return data, nil
+	return data, totalCount, nil
 
 }

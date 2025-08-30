@@ -33,11 +33,12 @@ import (
 const (
 	finRefBankTable = "fin_ref_bank"
 	BankTableKey    = "Bank"
+	BankPrimaryKey  = "BankId"
 )
 
 // Struct representing the database table
 type Bank struct {
-	BankID       int       `db:"bank_id" json:"bankId,omitempty"`
+	BankId       int       `db:"bank_id" json:"bankId,omitempty"`
 	BankName     string    `db:"bank_name" json:"bankName,omitempty" binding:"required"`
 	DisplayOrder int       `db:"display_order" json:"displayOrder,omitempty"`
 	CreatedBy    string    `db:"created_by" json:"createdBy,omitempty" `
@@ -60,6 +61,11 @@ func (b *BankTable) GetDatabase() string {
 // Get bank table name
 func (b *BankTable) GetTableName() string {
 	return finRefBankTable
+}
+
+// Get Bank Primary key
+func (t *BankTable) GetPrimaryKey() string {
+	return BankPrimaryKey
 }
 
 // Returns the rows for the table

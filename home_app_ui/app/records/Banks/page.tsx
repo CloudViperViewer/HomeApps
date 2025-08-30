@@ -11,7 +11,7 @@ async function Banks() {
   /*Bank query*/
   const query: Query = {
     table: "Bank",
-    fields: ["BankID", "BankName"],
+    fields: ["BankId", "BankName"],
     logicalExpression: {
       operator: "AND",
       filters: [
