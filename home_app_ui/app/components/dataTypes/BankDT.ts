@@ -2,6 +2,6 @@
 //Casing is required for API conversions
 
 export interface BankDT {
-  bankId?: number;
-  bankName?: string;
+  bankId: number;
+  bankName: string;
 }

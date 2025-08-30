@@ -40,8 +40,8 @@ type Bank struct {
 	BankID       int       `db:"bank_id" json:"bankId,omitempty"`
 	BankName     string    `db:"bank_name" json:"bankName,omitempty" binding:"required"`
 	DisplayOrder int       `db:"display_order" json:"displayOrder,omitempty"`
-	CreatedBy    string    `db:"created_by" json:"createdBy,omitempty" binding:"required"`
-	CreatedOn    time.Time `db:"created_on" json:"createdOn,omitempty" binding:"required"`
+	CreatedBy    string    `db:"created_by" json:"createdBy,omitempty" `
+	CreatedOn    time.Time `db:"created_on" json:"createdOn,omitempty" `
 	UpdatedBy    string    `db:"updated_by" json:"updatedBy,omitempty"`
 	UpdatedOn    time.Time `db:"updated_on" json:"updatedOn,omitempty"`
 	IsActive     bool      `db:"is_active" json:"isActive,omitempty"`

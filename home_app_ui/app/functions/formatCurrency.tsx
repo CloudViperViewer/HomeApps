@@ -1,12 +1,16 @@
+const AUD_FORMATTER = new Intl.NumberFormat("en-AU", {
+  style: "currency",
+  currency: "AUD",
+});
+
 /**
  * Format a value as AUD currency.
  */
-export function formateCurrency(value: number | string): string {
-  const n = typeof value === "string" ? Number(value) : value;
+export function formatCurrency(
+  value: number | string | null | undefined
+): string {
+  const n = typeof value === "string" ? Number(value) : value ?? NaN;
   if (!Number.isFinite(n)) return "";
 
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-  }).format(n);
+  return AUD_FORMATTER.format(n);
 }

@@ -8,7 +8,7 @@ import { BankDT } from "@/app/components/dataTypes/BankDT";
 import ColumnLayout from "@/app/components/columnLayout/columnLayout";
 import Column from "@/app/components/columnLayout/column";
 import PageHeader from "@/app/components/headers/pageHeader";
-import { formateCurrency } from "@/app/functions/formatCurrency";
+import { formatCurrency } from "@/app/functions/formatCurrency";
 
 async function Accounts() {
   /*Get bank data for references*/
@@ -97,7 +97,7 @@ async function Accounts() {
                       : "text-right text-2xl text-red-500"
                   }
                 >
-                  <b>{formateCurrency(item.balance)}</b>
+                  <b>{formatCurrency(item.balance)}</b>
                 </h1>
               </div>
             </Column>

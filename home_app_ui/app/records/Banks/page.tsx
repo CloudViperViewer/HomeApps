@@ -1,13 +1,11 @@
 //Landing page for the bank Record list
-
-import React from "react";
 import post, { Query } from "../../components/apis/post";
 import Card from "../../components/card/card";
 import { BankDT } from "@/app/components/dataTypes/BankDT";
 import PageHeader from "@/app/components/headers/pageHeader";
 
 //Types for safety
-type BankRow = { bankName: string; bankId?: number };
+type BankRow = { bankName: string; bankId: number };
 
 async function Banks() {
   /*Bank query*/

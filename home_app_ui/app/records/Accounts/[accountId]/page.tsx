@@ -9,7 +9,7 @@ import ReadOnlyTextField from "@/app/components/readOnlyFields/readOnlyTextField
 import { BankDT } from "@/app/components/dataTypes/BankDT";
 import { TransactionDT } from "@/app/components/dataTypes/TransactionDT";
 import { formatDateTime } from "@/app/functions/formatDateTime";
-import { formateCurrency } from "@/app/functions/formatCurrency";
+import { formatCurrency } from "@/app/functions/formatCurrency";
 
 type Params = { accountId: string };
 
@@ -133,7 +133,7 @@ async function AccountSummary({ params }: { params: Params }) {
             <Column>
               <ReadOnlyTextField
                 label="Balance"
-                value={formateCurrency(accountData.balance)}
+                value={formatCurrency(accountData.balance)}
               />
             </Column>
           </ColumnLayout>
@@ -173,7 +173,7 @@ async function AccountSummary({ params }: { params: Params }) {
                       {formatDateTime(transaction.dateTime)}
                     </td>
                     <td className="px-6 py-4">
-                      {formateCurrency(transaction.value)}
+                      {formatCurrency(transaction.value)}
                     </td>
                     <td className="px-6 py-4">
                       {transaction.onOffBillId?.Valid
