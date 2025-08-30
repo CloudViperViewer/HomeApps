@@ -1,12 +1,12 @@
-/*
- * Takes a value and formats it into the correct currency format
- * number number to format info currency
- * Returns string
-
+/**
+ * Format a value as AUD currency.
  */
-export function FormateCurrency(value: number) {
+export function formateCurrency(value: number | string): string {
+  const n = typeof value === "string" ? Number(value) : value;
+  if (!Number.isFinite(n)) return "";
+
   return new Intl.NumberFormat("en-AU", {
     style: "currency",
     currency: "AUD",
-  }).format(value);
+  }).format(n);
 }

@@ -8,8 +8,8 @@
  */
 export function DisplayValue<T, U, D extends U | null | undefined = U>(
   value: T,
-  arrayToSearch: T[],
-  arrayToFindIndex: U[],
+  arrayToSearch: ReadonlyArray<T>,
+  arrayToFindIndex: ReadonlyArray<U>,
   Default: D
 ): U | D {
   const index = arrayToSearch.indexOf(value);

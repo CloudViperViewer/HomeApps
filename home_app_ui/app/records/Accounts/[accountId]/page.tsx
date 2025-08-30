@@ -8,8 +8,8 @@ import Column from "@/app/components/columnLayout/column";
 import ReadOnlyTextField from "@/app/components/readOnlyFields/readOnlyTextField";
 import { BankDT } from "@/app/components/dataTypes/BankDT";
 import { TransactionDT } from "@/app/components/dataTypes/TransactionDT";
-import { formateDateTime } from "@/app/functions/formatDateTime";
-import { FormateCurrency } from "@/app/functions/formatCurrency";
+import { formatDateTime } from "@/app/functions/formatDateTime";
+import { formateCurrency } from "@/app/functions/formatCurrency";
 
 type Params = { accountId: string };
 
@@ -32,7 +32,7 @@ async function AccountSummary({ params }: { params: Params }) {
         {
           operator: "=",
           field: "AccountID",
-          value: [params.accountId],
+          value: [Number(params.accountId)],
         },
       ],
     },
@@ -91,7 +91,7 @@ async function AccountSummary({ params }: { params: Params }) {
         {
           operator: "=",
           field: "AccountId",
-          value: [params.accountId],
+          value: [Number(params.accountId)],
         },
       ],
     },
@@ -104,13 +104,12 @@ async function AccountSummary({ params }: { params: Params }) {
   ]);
   const bankData: BankDT | undefined =
     bankCall.success && Array.isArray(bankCall.data)
-      ? bankCall.data.map((bank: BankDT) => bank)[0]
+      ? (bankCall.data[0] as BankDT)
       : undefined;
 
   /*Return account data*/
   return (
     <Card className="bg-white">
-      (
       <>
         <PageHeader headerText={accountData.accountName} />
         <div className="p-3">
@@ -121,20 +120,20 @@ async function AccountSummary({ params }: { params: Params }) {
                 value={accountData.accountName}
               />
               <ReadOnlyTextField label="Account Type" value="Place Holder" />
-              <ReadOnlyTextField label="BSB" value={accountData.BSB} />
+              <ReadOnlyTextField label="BSB" value={accountData.bsb} />
               <ReadOnlyTextField
                 label="Account Number"
                 value={accountData.accountNumber}
               />
               <ReadOnlyTextField
                 label="Bank"
-                value={bankData?.BankName ?? ""}
+                value={bankData?.bankName ?? ""}
               />
             </Column>
             <Column>
               <ReadOnlyTextField
                 label="Balance"
-                value={`$${accountData.balance}`}
+                value={formateCurrency(accountData.balance)}
               />
             </Column>
           </ColumnLayout>
@@ -155,42 +154,42 @@ async function AccountSummary({ params }: { params: Params }) {
                 </tr>
               </thead>
               <tbody>
-                {(transactionCall.success ? transactionCall.data : []).map(
-                  (transaction: TransactionDT) => (
-                    <tr
-                      className="bg-white dark:bg-gray-800"
-                      key={transaction.TransactionID}
+                {(transactionCall.success && Array.isArray(transactionCall.data)
+                  ? transactionCall.data
+                  : []
+                ).map((transaction: TransactionDT) => (
+                  <tr
+                    className="bg-white dark:bg-gray-800"
+                    key={transaction.transactionId}
+                  >
+                    <td
+                      scope="row"
+                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                     >
-                      <td
-                        scope="row"
-                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                      >
-                        {transaction.TransactionTypeId}
-                      </td>
-                      <td className="px-6 py-4">
-                        {transaction.TransactionWith}
-                      </td>
-                      <td className="px-6 py-4">
-                        {formateDateTime(transaction.DateTime)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {FormateCurrency(transaction.Value)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {transaction.OnOffBillId?.Valid
-                          ? transaction.OnOffBillId.Int16
-                          : ""}
-                      </td>
-                      <td className="px-6 py-4">{transaction.ViaPaypal}</td>
-                    </tr>
-                  )
-                )}
+                      {transaction.transactionTypeId}
+                    </td>
+                    <td className="px-6 py-4">{transaction.transactionWith}</td>
+                    <td className="px-6 py-4">
+                      {formatDateTime(transaction.dateTime)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {formateCurrency(transaction.value)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {transaction.onOffBillId?.Valid
+                        ? transaction.onOffBillId.Int16
+                        : ""}
+                    </td>
+                    <td className="px-6 py-4">
+                      {transaction.viaPaypal ? "Yes" : "No"}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </Card>
         </div>
       </>
-      )
     </Card>
   );
 }

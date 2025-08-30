@@ -1,4 +1,4 @@
-/*Accounts landing page lising accounts*/
+/* Accounts landing page listing accounts */
 
 import post, { Query } from "../../components/apis/post";
 import Card from "../../components/card/card";
@@ -8,7 +8,7 @@ import { BankDT } from "@/app/components/dataTypes/BankDT";
 import ColumnLayout from "@/app/components/columnLayout/columnLayout";
 import Column from "@/app/components/columnLayout/column";
 import PageHeader from "@/app/components/headers/pageHeader";
-import { FormateCurrency } from "@/app/functions/formatCurrency";
+import { formateCurrency } from "@/app/functions/formatCurrency";
 
 async function Accounts() {
   /*Get bank data for references*/
@@ -65,10 +65,10 @@ async function Accounts() {
   }
   //Get bank ref data
   const bankIds: number[] = banks.success
-    ? banks.data.map((b: BankDT) => b.BankId)
+    ? banks.data.map((b: BankDT) => b.bankId)
     : [];
   const bankNames: string[] = banks.success
-    ? banks.data.map((b: BankDT) => b.BankName)
+    ? banks.data.map((b: BankDT) => b.bankName)
     : [];
 
   //List the accounts in a card list  layout
@@ -92,12 +92,12 @@ async function Accounts() {
               <div>
                 <h1
                   className={
-                    item.balance > 0
+                    Number(item.balance) > 0
                       ? "text-right text-2xl text-green-500"
                       : "text-right text-2xl text-red-500"
                   }
                 >
-                  <b>{FormateCurrency(item.balance)}</b>
+                  <b>{formateCurrency(item.balance)}</b>
                 </h1>
               </div>
             </Column>

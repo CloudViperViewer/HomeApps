@@ -6,6 +6,9 @@ import Card from "../../components/card/card";
 import { BankDT } from "@/app/components/dataTypes/BankDT";
 import PageHeader from "@/app/components/headers/pageHeader";
 
+//Types for safety
+type BankRow = { bankName: string; bankId?: number };
+
 async function Banks() {
   /*Bank query*/
   const query: Query = {
@@ -30,16 +33,16 @@ async function Banks() {
     <Card className="bg-white">
       <PageHeader headerText="Banks" />
       {data.success === true ? (
-        data.data.map((raw: any) => {
+        data.data.map((raw: BankRow) => {
           //convert to bank dt
           const item: BankDT = {
-            BankId: raw.BankId ?? raw.BankID,
-            BankName: raw.BankName,
+            bankId: raw.bankId,
+            bankName: raw.bankName,
           };
           //Construct Bank Card
           return (
-            <Card key={item.BankId} className="mt-5">
-              {item.BankName}
+            <Card key={item.bankId} className="mt-5">
+              {item.bankName}
             </Card>
           );
         })

@@ -1,11 +1,11 @@
-import React, { Children, ReactNode } from "react";
+import React, { ReactNode } from "react";
 
-interface columnLayoutPop {
+interface ColumnLayoutPops {
   children: ReactNode;
   className?: string;
 }
 
-function ColumnLayout({ children, className = "" }: columnLayoutPop) {
+function ColumnLayout({ children, className = "" }: ColumnLayoutPops) {
   const noOfColumns = React.Children.toArray(children).filter(
     (child) =>
       React.isValidElement(child) && (child.type as any)._IS_COLUMN_ === true

@@ -37,14 +37,14 @@ const (
 
 // Struct representing the database table
 type Bank struct {
-	BankID       int       `db:"bank_id" json:"BankId,omitempty"`
-	BankName     string    `db:"bank_name" json:"BankName,omitempty" binding:"required"`
-	DisplayOrder int       `db:"display_order" json:"DisplayOrder,omitempty"`
-	CreatedBy    string    `db:"created_by" json:"CreatedBy,omitempty" binding:"required"`
-	CreatedOn    time.Time `db:"created_on" json:"CreatedOn,omitempty" binding:"required"`
-	UpdatedBy    string    `db:"updated_by" json:"UpdatedBy,omitempty"`
-	UpdatedOn    time.Time `db:"updated_on" json:"UpdatedOn,omitempty"`
-	IsActive     bool      `db:"is_active" json:"IsActive,omitempty"`
+	BankID       int       `db:"bank_id" json:"bankId,omitempty"`
+	BankName     string    `db:"bank_name" json:"bankName,omitempty" binding:"required"`
+	DisplayOrder int       `db:"display_order" json:"displayOrder,omitempty"`
+	CreatedBy    string    `db:"created_by" json:"createdBy,omitempty" binding:"required"`
+	CreatedOn    time.Time `db:"created_on" json:"createdOn,omitempty" binding:"required"`
+	UpdatedBy    string    `db:"updated_by" json:"updatedBy,omitempty"`
+	UpdatedOn    time.Time `db:"updated_on" json:"updatedOn,omitempty"`
+	IsActive     bool      `db:"is_active" json:"isActive,omitempty"`
 }
 
 // Defines a slice of Banks

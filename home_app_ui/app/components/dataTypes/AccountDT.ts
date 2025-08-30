@@ -4,8 +4,8 @@
 export interface AccountDT {
   accountId: number;
   bankId: number;
-  balance: number;
+  balance: number | string;
   accountName: string;
-  BSB: string;
+  bsb: string;
   accountNumber: string;
 }

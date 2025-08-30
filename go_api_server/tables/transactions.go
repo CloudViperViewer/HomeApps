@@ -40,20 +40,20 @@ const (
 
 // Struct representing the database table
 type Transaction struct {
-	TransactionID      int             `db:"transaction_id" json:"TransactionId,omitempty"`
-	AccountId          int             `db:"account_id" json:"AccountId,omitempty" binding:"required"`
-	TransactionTypeId  int             `db:"transaction_type_id" json:"TransactionTypeId,omitempty" binding:"required"`
-	Value              decimal.Decimal `db:"value" json:"Value,omitempty" binding:"required"`
-	RecurringPaymentId sql.NullInt16   `db:"recurring_payment_id" json:"RecurringPaymentId,omitempty"`
-	OnOffBillId        sql.NullInt16   `db:"on_off_bill_id" json:"OnOffBillId,omitempty"`
-	ViaPaypal          bool            `db:"via_paypal" json:"ViaPaypal"`
-	DateTime           time.Time       `db:"date_time" json:"DateTime,omitempty" binding:"required"`
-	TransactionWith    string          `db:"transaction_with" json:"TransactionWith,omitempty"`
-	CreatedBy          string          `db:"created_by" json:"CreatedBy,omitempty" binding:"required"`
-	CreatedOn          time.Time       `db:"created_on" json:"CreatedOn,omitempty" binding:"required"`
-	UpdatedBy          string          `db:"updated_by" json:"UpdatedBy,omitempty"`
-	UpdatedOn          time.Time       `db:"updated_on" json:"UpdatedOn,omitempty"`
-	IsActive           bool            `db:"is_active" json:"IsActive"`
+	TransactionID      int             `db:"transaction_id" json:"transactionId,omitempty"`
+	AccountId          int             `db:"account_id" json:"accountId,omitempty" binding:"required"`
+	TransactionTypeId  int             `db:"transaction_type_id" json:"transactionTypeId,omitempty" binding:"required"`
+	Value              decimal.Decimal `db:"value" json:"value,omitempty" binding:"required"`
+	RecurringPaymentId sql.NullInt16   `db:"recurring_payment_id" json:"recurringPaymentId,omitempty"`
+	OnOffBillId        sql.NullInt16   `db:"on_off_bill_id" json:"onOffBillId,omitempty"`
+	ViaPaypal          bool            `db:"via_paypal" json:"viaPaypal"`
+	DateTime           time.Time       `db:"date_time" json:"dateTime,omitempty" binding:"required"`
+	TransactionWith    string          `db:"transaction_with" json:"transactionWith,omitempty"`
+	CreatedBy          string          `db:"created_by" json:"createdBy,omitempty" binding:"required"`
+	CreatedOn          time.Time       `db:"created_on" json:"createdOn,omitempty" binding:"required"`
+	UpdatedBy          string          `db:"updated_by" json:"updatedBy,omitempty"`
+	UpdatedOn          time.Time       `db:"updated_on" json:"updatedOn,omitempty"`
+	IsActive           bool            `db:"is_active" json:"isActive"`
 }
 
 // Defines a slice of Transactions

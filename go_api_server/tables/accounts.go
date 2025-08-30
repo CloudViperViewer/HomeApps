@@ -38,18 +38,18 @@ const (
 
 // Struct representing the database table
 type Account struct {
-	AccountID     int             `db:"account_id" json:"accountId,omitempty"`
-	AccountName   string          `db:"account_name" json:"accountName,omitempty"`
-	AccountTypeID int             `db:"account_type_id" json:"accountTypeId,omitempty"`
-	BankID        int             `db:"bank_id" json:"bankId,omitempty"`
-	AccountNumber string          `db:"account_number" json:"accountNumber,omitempty"`
-	BSB           string          `db:"bsb" json:"BSB,omitempty"`
-	Balance       decimal.Decimal `db:"balance" json:"balance,omitempty"`
-	CreatedBy     string          `db:"created_by" json:"createdBy,omitempty"`
-	CreatedOn     time.Time       `db:"created_on" json:"createdOn,omitempty"`
-	UpdatedBy     string          `db:"updated_by" json:"updatedBy,omitempty"`
-	UpdatedOn     time.Time       `db:"updated_on" json:"updatedOn,omitempty"`
-	IsActive      bool            `db:"is_active" json:"isActive,omitempty"`
+	AccountID     int                 `db:"account_id" json:"accountId,omitempty"`
+	AccountName   string              `db:"account_name" json:"accountName,omitempty"`
+	AccountTypeID int                 `db:"account_type_id" json:"accountTypeId,omitempty"`
+	BankID        int                 `db:"bank_id" json:"bankId,omitempty"`
+	AccountNumber string              `db:"account_number" json:"accountNumber,omitempty"`
+	BSB           string              `db:"bsb" json:"bsb,omitempty"`
+	Balance       decimal.NullDecimal `db:"balance" json:"balance,omitempty"`
+	CreatedBy     string              `db:"created_by" json:"createdBy,omitempty"`
+	CreatedOn     time.Time           `db:"created_on" json:"createdOn,omitempty"`
+	UpdatedBy     string              `db:"updated_by" json:"updatedBy,omitempty"`
+	UpdatedOn     time.Time           `db:"updated_on" json:"updatedOn,omitempty"`
+	IsActive      bool                `db:"is_active" json:"isActive,omitempty"`
 }
 
 // Defines a slice of Accounts
